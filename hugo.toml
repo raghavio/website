@@ -1,0 +1,31 @@
+baseURL = 'https://raghavio.com/'
+languageCode = 'en-in'
+title = 'Raghav Sharma'
+theme = 'anubis'
+enableEmoji = true
+[[menu.main]]
+  identifier = "about"
+  name = "About"
+  title = "About"
+  url = "/about/"
+  weight = 1
+  target = "raghav-resume"
+[[menu.main]]
+  identifier = "resume"
+  name = "Resume"
+  title = "Resume"
+  url = "/resume.pdf"
+  weight = 2
+  target = "raghav-resume"
+[params]
+    email = 'raghavsharma@outlook.in'
+    style = 'dark'
+    [[params.social]]
+        id = 'github'
+        name = 'raghavio'
+    [[params.social]]
+        id = 'twitter'
+        name = 'raghavio'        
+    [[params.social]]
+        id = 'email'
+        name = 'raghavsharma@outlook.in'    
