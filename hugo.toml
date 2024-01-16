@@ -19,7 +19,7 @@ enableEmoji = true
   target = "raghav-resume"
 [params]
     email = 'raghavsharma@outlook.in'
-    style = 'dark'
+    style = 'auto'
     [[params.social]]
         id = 'github'
         name = 'raghavio'
