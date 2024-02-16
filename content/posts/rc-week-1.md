@@ -27,7 +27,7 @@ Liz welcomed us with this beautiful note:
 
 For the meet and greets, Nick arranged us in several Zoom breakout rooms, where we got to meet randomly selected people in our batch for a few minutes. I believe I met around 12 to 15 folks. This was super fun and I had some great conversations. By the end, I was low-key exhausted from repeatedly introducing myself.
 
-Following this, we were encouraged to share our excitements and nervousness, which were then compiled into a list. The point was to make ourself feel welcome and that we are not alone with these thoughts.
+Following this, we were encouraged to share our excitement and nervousness, which were then compiled into a list. The point was to make ourself feel welcome and that we are not alone with these thoughts.
 
 The Zoom call ended with a short skit explaining the [social rules](https://www.recurse.com/social-rules) of RC. In this skit, a faculty member would deliberately violate a social rule, and we had to intervene and point it out.
 
@@ -37,7 +37,7 @@ After going through all the new introductions on Zulip and subscribing to the st
 
 #### Day 2 - Thursday, Jan 4th: Pairing workshop and website planning
 
-During the day, I was mostly procrastinating on setting up a website (this thing). The first set of events for day 2 was the pairing workshop. But before that, I had a quick coffee chat with Emily Bernier. No, none of us were having coffee or any other beverage. It was also 10pm for me. These are simply termed 'coffee chats'. These are scheduled by a bot for a one-on-one Zoom chat with a random recurser. 
+During the day, I was mostly procrastinating on setting up a website (this thing). The first set of events for day 2 was the pairing workshop. But before that, I had a quick coffee chat with Emily Bernier. No, none of us were having coffee or any other beverage. It was also 10 pm for me. These are simply termed 'coffee chats'. These are scheduled by a bot for a one-on-one Zoom chat with a random recurser. 
 
 The pairing workshop started with Liz explaining how pairing is the essence of making the most out of your time at RC. Followed by a short Zoom recording of two folks pairing on a Tic Tac Toe game in Ruby. That recording was so fun and completely unlike any pairing I've done at work, which is mostly sad and depressing.
 
