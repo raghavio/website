@@ -1,0 +1,111 @@
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit; 
+}
+
+html {
+  box-sizing: border-box;
+  font-size: 62.5%; 
+}
+
+body {
+  font-family: "Nunito", sans-serif;
+  color: #333;
+  font-weight: 300;
+  line-height: 1.6;
+  background-image: url("pictures/carpet.jpg");
+  background-repeat: repeat;
+  background-size: 968px 685px;
+  position: relative;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(16, 5vw);
+  grid-gap: 1.5rem; 
+  position: absolute; 
+  z-index: -1;
+  margin: 7px;
+}
+
+.gallery__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block; 
+  filter: brightness(65%);
+  border-radius: 1%;
+}
+
+.gallery__item--1 {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 10;
+
+}
+
+.gallery__item--2 {
+  grid-column-start: 6;
+  grid-column-end:9;
+  grid-row-start: 7;
+  grid-row-end: 17;
+}
+
+.gallery__item--3 {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 16;
+  grid-row-end: 21;
+}
+
+.gallery__item--4 {
+  grid-column-start: 4;
+  grid-column-end: 9;
+  grid-row-start: 1;
+  grid-row-end: 7;
+}
+
+.gallery__item--5 {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 10;
+  grid-row-end: 16;
+}
+
+.gallery__item--6 {
+  grid-column-start: 4;
+  grid-column-end: 6;
+  grid-row-start: 7;
+  grid-row-end: 12;
+}
+
+.gallery__item--7 {
+  grid-column-start: 4;
+  grid-column-end: 9;
+  grid-row-start: 17;
+  grid-row-end: 19;
+}
+
+.gallery__item--8 {
+  grid-column-start: 4;
+  grid-column-end: 6;
+  grid-row-start: 12;
+  grid-row-end: 17;
+}
+ 
+/* .gallery__img {
+  filter: grayscale(100%);
+  transition: filter 0.5s; 
+}
+
+.gallery__img:hover {
+  filter: grayscale(0%);
+} */
