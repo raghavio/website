@@ -20,9 +20,9 @@ body {
   color: white;
   font-weight: 300;
   line-height: 1.6;
-  background-image: url("pictures/carpet.jpg");
+  background-image: url("pictures/shirt-print.jpg");
   background-repeat: repeat;
-  background-size: 968px 685px;
+ 
   position: relative;
   height: 100%;
   margin: 0.5rem;
@@ -48,7 +48,7 @@ nav {
 
 #name {
   line-height: 1;
-  letter-spacing: 7px;
+  letter-spacing: 5px;
 }
 
 #sub-name {
