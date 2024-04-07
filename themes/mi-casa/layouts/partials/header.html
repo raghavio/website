@@ -1,0 +1,39 @@
+<aside>
+<nav title="{{ if .IsPage }}
+       {{ with .Site.GetPage "section" "posts" }}
+       {{ .Params.sidebar_title }}
+       {{ end }}
+       {{ else }} Ikat print from my shirt. {{ end }}">
+
+      <a href="/"><h1 id="name">Raghav Sharma</h1>
+        <h4 id="sub-name">/rʌɡhəv ˈʃɑrmə/ — राघव शर्मा</h4></a>
+        <br>
+        <br>
+        <br>
+        <ul>
+            <li>
+              <a href="#"><span class="highlight-container"><span class="highlight">What's This Website?</span></span></a>
+            </li>
+            <li>
+              <a href="#"><span class="highlight-container"><span class="highlight">Desk Setup</span></span></a>
+            </li>
+            <li>
+              <a href="#"><span class="highlight-container"><span class="highlight">Recurse Center</span></span></a>
+            </li>
+            <br>
+                        <li><a href="/" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span class="highlight">Home</span></span></a></li>
+
+            <li><a href="/posts" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span class="highlight">Blog</span></span></a></li>
+            <li><a href="/about" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span class="highlight">About</span></span></a></li>
+            <li><a href="/resume.pdf" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span class="highlight">Resume</span></span></a></li>
+        </ul>
+        <ul style="position: absolute; bottom: 20px; width: 160px;">
+            <li>
+              <a href="https://github.com/raghavio" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span class="highlight">GitHub</span></span></a>
+            </li>
+            <li>
+              <a href="https://twitter.com/raghavio" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span class="highlight">Twitter</span></span></a>
+            </li>
+        </ul>
+    </nav>
+</aside>

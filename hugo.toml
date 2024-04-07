@@ -1,7 +1,7 @@
 baseURL = 'https://raghavio.com/'
 languageCode = 'en-in'
 title = 'Raghav Sharma'
-theme = 'anubis'
+theme = 'mi-casa'
 enableEmoji = true
 [[menu.main]]
   identifier = "about"

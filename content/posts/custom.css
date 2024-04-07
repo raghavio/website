@@ -1,0 +1,180 @@
+:root {
+  --font-color: #333;
+  --bg-color: #fff;
+  --link-color: #229215;
+  --link-state-color: #a31d1d;
+  --link-state-border-color: rgba(163, 29, 29, .5);
+  --thead-bg-color: lightgrey;
+  --table-border-color: lightgrey;
+  --nav-bg-color: #fafafa;
+  --nav-link-color: #696969;
+  --pre-color: #f8f8f2;
+  --pre-bg-color: #272822;
+  --bq-color: #000;
+  --hr-color: #ccc;
+  --pagination-bg-color: #fafafa;
+  --pagination-link-color: #696969;
+  --post-info-color: grey;
+  --switcher-color: #fff;
+  --switcher-bg-color: #333;
+  --svg-color: #333;
+  --svg-state-color: #a31d1d
+}
+
+section {
+  margin-right: 0.5rem;
+  background: #A3C7BE !important;
+  min-height: calc(100% - 1rem);
+}
+
+nav {
+  background-image: url("/pictures/burlap-bag.jpg") !important;
+
+}
+
+.highlight-container:before {
+  background: #4f582b;
+}
+
+article {
+  max-width: 42em;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+article img {
+  max-width: 100%;
+  display: block;
+  height: auto;
+  margin: 0 auto .5em
+}
+
+article img {
+  max-width: 100%;
+  display: block;
+  height: auto;
+  margin: 0 auto .5em
+}
+
+article figcaption {
+  color: grey;
+  text-align: center;
+  font-size: .85em;
+  margin-bottom: 2em
+}
+
+article video {
+  max-width: 100%;
+  display: block;
+  height: auto;
+  margin: 0 auto .5em
+}
+
+article h1 {
+    font-size: 1.35em
+}
+
+article h2 {
+    font-size: 1.2em
+}
+
+article h3 {
+    font-size: 1.1em
+}
+
+article a {
+    color: var(--link-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent
+}
+
+article a:hover, article a:focus, article a:active {
+    color: var(--link-state-color);
+    border-bottom: 1px solid var(--link-state-border-color)
+}
+
+article a:active, article a:hover {
+    outline: 0
+}
+
+article a:active {
+    opacity: .9
+}
+
+article a.skip-main {
+    left: -999px;
+    position: absolute;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    z-index: -999
+}
+
+article a.skip-main:focus, article a.skip-main:active {
+    left: auto;
+    top: 0;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    z-index: 999;
+    padding: 4px 6px;
+    text-decoration: underline;
+    border: none
+}
+
+thead {
+    background: var(--thead-bg-color)
+}
+
+table {
+    max-width: 100%;
+    border-spacing: 0
+}
+
+th,td {
+    padding: .5em 1em;
+    border: 1px double var(--table-border-color)
+}
+
+pre {
+    padding: 1em;
+    max-width: 100%;
+    overflow: auto
+}
+
+code,pre,kbd {
+    color: var(--pre-color);
+    background-color: var(--pre-bg-color);
+    font-family: monospace;
+    font-size: .9em;
+    line-height: 154%
+}
+
+pre code,pre kbd {
+    color: inherit;
+    background-color: inherit
+}
+
+blockquote {
+    border-left: 2px solid var(--bq-color);
+    padding: .1em 1em;
+    margin-left: .75em
+}
+
+p {
+    margin-top: .5em;
+    margin-bottom: .5em
+}
+
+hr {
+    color: var(--hr-color);
+    background-color: var(--hr-color);
+    border: none;
+    height: 1px
+}
+
+.blog__title {
+  margin-top: 0;
+  padding-top: 35px; /* Replacing margin with padding because margin reduces the area height of the section tag.*/
+}

@@ -1,0 +1,146 @@
+body {
+  margin: 0.5rem;
+  line-height: 1.5;
+  font-size: 1.2rem;
+  overflow: hidden;
+  height: 100vh;
+  margin-right: 0;
+}
+
+aside {
+  flex: 1 0 auto;
+}
+
+nav {
+    font-family: "Nunito", sans-serif;
+    font-weight: 300;
+    color: rgb(255, 255, 255);
+    height: calc(100% - 1rem);
+    padding: 20px;
+    background-image: url("/pictures/black-ikat.jpg");
+    background-size: 100% auto;
+    background-repeat: repeat;
+    margin-right: 0.5rem;
+}
+
+#name {
+  text-shadow: 0 0 3px #ffffff, 0 0 20px #ffffff;
+    line-height: 1;
+    letter-spacing: 5px;
+    margin: 0;
+    font-size: 2.2rem;
+}
+
+#sub-name {
+  font-weight: 500;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+nav ul {
+  list-style-type: none;
+  font-size: 1.5rem;
+  padding: 0;
+}
+
+nav li {
+  padding-top: 10px;
+}
+
+nav a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(18, 5vw);
+    grid-gap: 0.5rem;
+    filter: brightness(55%);
+    margin-right: 0.5rem;
+}
+
+.gallery__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery__item {
+  margin: 0;
+}
+
+.gallery__item:nth-of-type(1) {
+    grid-area: 1 / 1 / span 5 / span 5;
+}
+
+.gallery__item:nth-of-type(2) {
+    grid-area: 1 / 6 / span 7 / span 3;
+}
+
+.gallery__item:nth-of-type(3) {
+    grid-area: 6 / 1 / span 5 / span 3;
+}
+
+.gallery__item:nth-of-type(4) {
+    grid-area: 6 / 4 / span 4 / span 2;
+}
+
+.gallery__item:nth-of-type(5) {
+    grid-area: 14 / 4 / span 4 / span 2;
+}
+
+.gallery__item:nth-of-type(6) {
+    grid-area: 11 / 1 / span 8 / span 3;
+}
+
+.gallery__item:nth-of-type(7) {
+    grid-area: 10 / 4 / span 4 / span 5;
+}
+
+.gallery__item:nth-of-type(8) {
+    grid-area: 8 / 6 / span 2 / span 3;
+}
+
+.gallery__item:nth-of-type(9) {
+    grid-area: 14 / 6 / span 4 / span 3;
+}
+
+.gallery__item:nth-of-type(10) {
+    grid-area: 18 / 4 / span 1 / span 5;
+}
+
+.wrapper {
+  display: flex;
+  height: 100%;
+}
+
+.container {
+  width: 100%;
+  overflow: auto;
+}
+
+.highlight-container, .highlight {
+  position: relative;
+}
+
+.highlight-container {
+  display: inline-block;
+}
+.highlight-container:before {
+  content: " ";
+  display: block;
+  height: 60%;
+  width: 100%;
+  margin-left: -3px;
+  margin-right: -3px;
+  position: absolute;
+  background: #582b55;
+  transform: rotate(2deg);
+  top: -1px;
+  left: -1px;
+  border-radius: 20% 25% 20% 24%;
+  padding: 10px 3px 3px 10px;
+}

@@ -28,6 +28,7 @@ body {
 
 h1 {
   font-size: 2.3rem;
+  background-image: url("/pictures/carpet.jpg");
 }
 
 h4 {
@@ -54,7 +55,7 @@ nav::before {
   background-size: 100% auto;
   background-repeat: repeat;
   opacity: 0.8;
-  z-index: -1; /* Ensure the background image is behind the content */
+  z-index: -1;
 }
 
 #name {
@@ -72,7 +73,7 @@ nav::before {
   grid-template-rows: repeat(18, 5vw);
   grid-gap: 0.5rem;
   margin-left: calc(18% + 0.7rem);
-  filter: brightness(60%);
+  filter: brightness(55%);
 }
 
 .gallery__img {
@@ -82,42 +83,42 @@ nav::before {
   display: block;
 }
 
-.gallery__item--1 {
-  grid-area: 1 / 1 / 6 / 6;
+.gallery__item:nth-of-type(1) {
+  grid-area: 1 / 1 / span 5 / span 5;
 }
 
-.gallery__item--2 {
-  grid-area: 1 / 6 / 8 / 9;
+.gallery__item:nth-of-type(2) {
+  grid-area: 1 / 6 / span 7 / span 3;
 }
 
-.gallery__item--3 {
-  grid-area: 6 / 1 / 11 / 4;
+.gallery__item:nth-of-type(3) {
+  grid-area: 6 / 1 / span 5 / span 3;
 }
 
-.gallery__item--4 {
-  grid-area: 6 / 4 / 10 / 6;
+.gallery__item:nth-of-type(4) {
+  grid-area: 6 / 4 / span 4 / span 2;
 }
 
-.gallery__item--5 {
-  grid-area: 14 / 4 / 18 / 6;
+.gallery__item:nth-of-type(5) {
+  grid-area: 14 / 4 / span 4 / span 2;
 }
 
-.gallery__item--6 {
-  grid-area: 11 / 1 / 19 / 4;
+.gallery__item:nth-of-type(6) {
+  grid-area: 11 / 1 / span 8 / span 3;
 }
 
-.gallery__item--7 {
-  grid-area: 10 / 4 / 14 / 9;
+.gallery__item:nth-of-type(7) {
+  grid-area: 10 / 4 / span 4 / span 5;
 }
 
-.gallery__item--8 {
-  grid-area: 8 / 6 / 10 / 9;
+.gallery__item:nth-of-type(8) {
+  grid-area: 8 / 6 / span 2 / span 3;
 }
 
-.gallery__item--9 {
-  grid-area: 14 / 6 / 18 / 9;
+.gallery__item:nth-of-type(9) {
+  grid-area: 14 / 6 / span 4 / span 3;
 }
 
-.gallery__item--10 {
-  grid-area: 18 / 4 / 19 / 9;
+.gallery__item:nth-of-type(10) {
+  grid-area: 18 / 4 / span 1 / span 5;
 }
