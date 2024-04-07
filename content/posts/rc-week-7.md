@@ -15,7 +15,7 @@ Attended the pair programming workshop. I was matched with Jake Low and [we mana
 #### Day 3 - Wednesday, Feb 14th
 
 Paired with Teresa Ibarra for Creative Coding. The prompt was "Everyone got a hungry heart." After some pondering, we decided on a version of Google's offline T-rex game. It's a T-rex with a hungry heart who is eating dinosaur chicken nuggets. Okay, that, I... I refuse to explain our thought process. It can be checked out [here](https://raghavio.github.io/hungry-heart/).
-[Web-capture_16-2-2024_1298_raghavio.github.io.jpeg](/user_uploads/13/MBpPPNT0cgLbm9WSXod65z3H/Web-capture_16-2-2024_1298_raghavio.github.io.jpeg)
+![](/hungry-dino-heart.jpeg)
 
 Very interesting Snail Rustlings meeting. We wrapped up the 'Move Semantics' section. Thanks to Jake Low for joining and explaining things.
 
