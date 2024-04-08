@@ -6,12 +6,12 @@ draft: false
 
 Greetings! My name is Raghav, and I'm attending the Winter 2 batch of Recurse Center remotely from New Delhi, India. I just completed my second week. Here are my day to day logs of what I've been up to and my reflections of the week:
 
-#### Day 1 - Monday, Jan 8th: Building the volitional muscles 🧠💪🏽
+### Day 1 - Monday, Jan 8th: Building the volitional muscles 🧠💪🏽
 
 The day started with a Zoom chat with Kevin Galligan. Kevin is a Lisp programmer who holds a Ph.D. His research project focused on [error correction code](https://en.wikipedia.org/wiki/Error_correction_code). He's the only Lisp enthusiast I've found in my batch so far, and I look forward to pairing with him. We discussed his BitTorrent game project, how RuneScape Private Servers came to be, and, obviously, our love for Lisp.
 
 Next on the agenda was the volitional muscle workshop. Building your volitional muscle is one of the three self-directives.
->Building your volitional muscles means growing your ability to make decisions about your work and learning based on your own curiosity and joy, rather than external pressures and fears. Your volition, or ability to make decisions and act on them, is something you can grow by exercising it, just like a muscle. 
+>Building your volitional muscles means growing your ability to make decisions about your work and learning based on your own curiosity and joy, rather than external pressures and fears. Your volition, or ability to make decisions and act on them, is something you can grow by exercising it, just like a muscle.
 
 Hosted by the RC faculty, Liz, we were asked to create 3 columns on a medium of our choice. The label for the first column was 'Ideas'. We had to write down every idea that crossed our minds to work on at RC.
 
@@ -30,7 +30,7 @@ After the workshop, I had a much clearer understanding of the things I wanted to
 I ended the day by going through the first chapter of the Crafting Interpreters book. The Introduction chapter mainly involved how the book is structured and what to expect out of it. I learnt about how some languages use tools like [Lex](https://en.wikipedia.org/wiki/Lex_(software)) and [Yacc](https://en.wikipedia.org/wiki/Yacc) to generate source files for compilers from a higher-level description (Grammar file).
 There is a study group meeting coming up on Thursday.
 
-#### Day 2 - Tuesday, Jan 9th
+### Day 2 - Tuesday, Jan 9th
 
 Someone reached out to me on Twitter regarding my [metronome app](https://accelonome.com) not functioning on mobile anymore. I made a change two weeks ago which broke it for small screens. [Fixed that](https://github.com/raghavio/accelonome/commit/b62980f272b5a2e5ebc7f07ff9f1b3d1194ae1d5).
 
@@ -43,7 +43,7 @@ There was a Rust mob programming session happening for [Learning Rust With Entir
 
 Read half of Chapter 2 of Crafting Interpreters. Ideally, I should have completed it, but today was a lot. Chapter 2 discusses the various components and parts of language implementation. It briefly covers topics that are expanded upon in multiple chapters later in the book. Things like scanning, parsing, static analysis, IR, Tree-walk interpreters, and more.
 
-#### Day 3 - Wednesday, Jan 10th: Creative Coding!
+### Day 3 - Wednesday, Jan 10th: Creative Coding!
 
 An eventful day.
 
@@ -67,7 +67,7 @@ The last speaker was Quinten Konyn, they spoke about similarities between [Dunge
 
 I managed to finish chapter 2 of the Crafting Interpreters book. I'm looking forward to the study group tomorrow.
 
-#### Day 4 - Thursday, Jan 11th: Presentations!
+### Day 4 - Thursday, Jan 11th: Presentations!
 
 Started the day by attending the Zoom check-in. Today's question prompt was "What's your non food related favourite smell?" I love the smell of rain on dry ground. I even own a petrichor perfume ([Attar](https://en.wikipedia.org/wiki/Attar)).
 
@@ -78,7 +78,7 @@ I had a long, fun and relaxed call with Jatinderjit from the Winter 1 batch. He'
 Ended the day by attending the weekly presentations event. You get 5 minutes to give a presentation about what you've learnt at RC. Julie Bodian, showed her MIDI Visualizer project. It reminded me of those WinAmp and Windows Media Player animations. Zach Ahn talked about his Safari extension which replaces reddit.com URLs to old.reddit.com. And a couple of more cool presentations.
 The entire atmosphere was so welcoming. The presentations, the clapping afterward, and the brilliant monologue by Liz talking about the RC culture and self-directives. I felt privileged to be around such amazing people doing even more amazing work.
 
-#### Day 5 - Friday, Jan 12th: Rust And Relax
+### Day 5 - Friday, Jan 12th: Rust And Relax
 
 Mostly a chill day again, but I started learning Rust!
 
@@ -90,9 +90,9 @@ I finished two chapters of the Rust book. Things are a bit confusing but so far 
 
 Weekend is here, and I plan to finish blogging both Week 1 and Week 2's updates.
 
-### Reflections
+## Reflections
 
-I wasn't very productive, but I'm happy with the progress I made this week. I finished two chapters of the Crafting Interpreters book and started learning Rust. I spoke to a lot of cool people and watched some interesting presentations. 
+I wasn't very productive, but I'm happy with the progress I made this week. I finished two chapters of the Crafting Interpreters book and started learning Rust. I spoke to a lot of cool people and watched some interesting presentations.
 
 I also did a bunch of other things that I can't quite quantify, like browsing Zulip and going through others' check-in logs. One might think that's a distraction, but I don’t. It's really like a mini-adventure. From geeky Formal Methods talk to the creative possibilities of OpenGL Shading, from Bret Victor's groundbreaking ideas to Applied ML, and sometimes, it's all about [cracking codes](https://cryptopals.com/) in Cryptography. It's not just scrolling; it's learning and realizing the incredible diversity of the RC community.
 

@@ -6,7 +6,7 @@ draft: false
 
 Week 4 was all about diving into Rust, tinkering with Java to write a programming language scanner, and some cool group sessions. I got my hands dirty with Rust's memory model, Java 21, and explored some of Bret Victor's ideas.
 
-#### Day 1 - Monday, Jan 21st:
+### Day 1 - Monday, Jan 21st:
 
 Rust makes me feel like learning to program for the first time. 
 
@@ -19,13 +19,13 @@ Rust makes me feel like learning to program for the first time.
 - I decided to do Crafting Interpreter in Java. It's been a decade since I last wrote in it, and all the new updates in Java 21 look interesting. I set up the VSCode. Read a bit of Chapter 4.
 
 
-#### Day 2 - Tuesday, Jan 22nd:
+### Day 2 - Tuesday, Jan 22nd:
 
 It was a very head-down, focused day. I finished Chapter 4 of Crafting Interpreters in Java. I'm trying my best not to straight-up copy paste the code from the book. Although my functional brain wants to do things I shouldn't be doing in Java, I keep telling myself that classes are there for a reason and mutation is okay (ugh).
 
 Chapter 4 also has a tiny bit of theory around [regular language](https://en.wikipedia.org/wiki/Regular_language), [Chomsky hierarchy](https://en.wikipedia.org/wiki/Chomsky_hierarchy) and finite-state machines. Did not really understand any of that tbh. I'll bring it up in the study group.
 
-#### Day 3 - Wednesday, Jan 23rd:
+### Day 3 - Wednesday, Jan 23rd:
 
 - Coffee chat with Gunjan Tank. She's joining in from Bangalore. Other than the usual tech stuff, we spoke about her Vipassana experience and how I too almost participated once but got scared. For the uninitiated,  [Vipassana](https://www.dhamma.org/) is a strict 10 day meditation retreat that has centers worldwide.
 
@@ -37,7 +37,7 @@ Chapter 4 also has a tiny bit of theory around [regular language](https://en.wik
 
 - I came across another Rust resource by Brown University. It's an enhanced version of the Rust book. I plan to go through the [ownership chapter](https://rust-book.cs.brown.edu/ch04-01-what-is-ownership.html) in it.
 
-#### Day 4 - Thursday, Jan 24th:
+### Day 4 - Thursday, Jan 24th:
 
 - Crafting Interpreters study group. I didn't know we were discussing Chapter 5 🙈. I need to catch up. I didn't understand much of the discussion, but it was still fun. It was cool to see TypeScript's [Scanner](https://github.com/Microsoft/TypeScript/blob/main/src/compiler/scanner.ts#L1786).It's huuuge, but the structure feels similar to what's there in the book, and I'm happy how I can kind of make sense of things.
 
@@ -47,7 +47,7 @@ Chapter 4 also has a tiny bit of theory around [regular language](https://en.wik
 
 - There was a Staff+ Engineer roundtable event that I really wanted to attend but my Zoom said enough for the day.
 
-#### Day 5 - Friday, Jan 25th:
+### Day 5 - Friday, Jan 25th:
 
 - Paired (?) with Reed Spool. He's developing a Forth interpreter in C for Playdate. I wasn't familiar with any of those things, but he was kind and patient enough to explain them. Forth is... interesting. It reminded me of REPL and macros, so we discussed how it differs from Lisp. In the end, we tried to debug some of the compiler warnings. Although I couldn't contribute much, I was happy to know more about Forth and C.
 

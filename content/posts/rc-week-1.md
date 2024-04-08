@@ -10,7 +10,7 @@ Greetings! My name is Raghav, and I'm attending the Winter 2 batch of Recurse Ce
 
 Here's a rundown of my day to day experience and reflections so far.
 
-#### Day 1 - Wednesday, Jan 3rd: Welcoming and Introductions
+### Day 1 - Wednesday, Jan 3rd: Welcoming and Introductions
 The first day commenced with welcome calls and introductions. This was at 9:30PM IST. The RC faculty and the current batch got together in a Zoom call. This included not only my batch, Winter 2, but also the preceding batch, Winter 1. At Recurse, a new batch starts every six weeks, ensuring an overlap between two batches at all times.
 
 In the Zoom call, we were introduced to the RC faculty. They briefed us on RC's philosophy, the [self directives](https://www.recurse.com/self-directives), and how to be a dramatically better programmer.
@@ -35,9 +35,9 @@ After the Zoom call, I spent some time figuring out Zulip, open source Slack alt
 
 After going through all the new introductions on Zulip and subscribing to the streams (channels) I was interested in, I decided to call it a day.
 
-#### Day 2 - Thursday, Jan 4th: Pairing workshop and website planning
+### Day 2 - Thursday, Jan 4th: Pairing workshop and website planning
 
-During the day, I was mostly procrastinating on setting up a website (this thing). The first set of events for day 2 was the pairing workshop. But before that, I had a quick coffee chat with Emily Bernier. No, none of us were having coffee or any other beverage. It was also 10 pm for me. These are simply termed 'coffee chats'. These are scheduled by a bot for a one-on-one Zoom chat with a random recurser. 
+During the day, I was mostly procrastinating on setting up a website (this thing). The first set of events for day 2 was the pairing workshop. But before that, I had a quick coffee chat with Emily Bernier. No, none of us were having coffee or any other beverage. It was also 10 pm for me. These are simply termed 'coffee chats'. These are scheduled by a bot for a one-on-one Zoom chat with a random recurser.
 
 The pairing workshop started with Liz explaining how pairing is the essence of making the most out of your time at RC. Followed by a short Zoom recording of two folks pairing on a Tic Tac Toe game in Ruby. That recording was so fun and completely unlike any pairing I've done at work, which is mostly sad and depressing.
 
@@ -90,13 +90,13 @@ After the workshop, I started looking for a Static Site Generator (SSG) for my w
 
 The day ended with a chill audio chat with Reed Spool and Vedashree Divekar in the Cafe area of the Virtual RC. We discussed websites, animations, JSX on server side, backpacking. I found out about the GSAP animation library and their [website](https://gsap.com/) is wicked.
 
-#### Day 3 - Friday, Jan 5th: Setting up the Website
+### Day 3 - Friday, Jan 5th: Setting up the Website
 
 Mostly a chill day but managed to get some work done during the night. After contemplating for an hour, I finalized on the domain name. It was quick to setup a blog on Hugo. I wrote a [short post](/posts/recurse-center/) about the Recurse Center and outlined my plans.
 
 Via Zulip, I found out about [Cloudflare Pages](https://pages.cloudflare.com/) and decided to use it for deployment. It has Github integration and I was up and ready in a jiffy. You can do the same on Github Pages but I'm guessing the performance of Cloudflare will be better since it uses their edge network.
 
-### Reflections
+## Reflections
 
 I find myself scattered, trying to absorb the multitude of events, activities, and Zulip streams. Everyone is incredibly smart, working on things I've never even heard of. I was told all these feelings are normal and it takes two to three weeks to really settle and focus.
 

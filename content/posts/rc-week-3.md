@@ -6,13 +6,13 @@ draft: false
 
 Week 3 was filled with a variety of programming and non-programming activities. Notable experiences included creating a Tic Tac Toe game in Clojure, discovering a new Rust resource, attending a TIC-80 workshop, and a very cool Creative Coding project.
 
-For Creative Coding, I developed a game to demonstrate integer overflow, based on the Sisyphus myth, showing Sisyphus perpetually pushing a boulder uphill. 
+For Creative Coding, I developed a game to demonstrate integer overflow, based on the Sisyphus myth, showing Sisyphus perpetually pushing a boulder uphill.
 
 Additional activities included coffee chats discussing programming and personal experiences, a chat on worker cooperatives, and attending the local PyDelhi meet-up to pick up my forgotten water bottle.
 
 The week was a blend of learning, collaboration, and exploration of new concepts.
 
-#### Day 1 - Monday, Jan 15th: Tic Tac Toe in Clojure
+### Day 1 - Monday, Jan 15th: Tic Tac Toe in Clojure
 
 - Finished blogging about the updates for both weeks.
 - Paired with Jenkhai Yew, courtesy of the pairing bot. We weren't sure what to work on together, so we chose one of the RC pair programming tasks. We created a basic, barely functioning Tic Tac Toe game in Clojure with no validations. Here's the code on repl.it. It was great to work with him. He was surprisingly quick to pick Clojure. I also loved his background. High school competitive coder turned literature grad turned programmer.
@@ -53,14 +53,14 @@ The week was a blend of learning, collaboration, and exploration of new concepts
 - Attended the [TIC-80](https://tic80.com/) 101 workshop. I want to learn it for creative coding.
 - Started the 3rd chapter of Crafting Interpreters.
 
-#### Day 2 - Tuesday, Jan 16th: Impossible Day
+### Day 2 - Tuesday, Jan 16th: Impossible Day
 
 - Coffee chat with Felix Caraballo. We mostly discussed Rust and Zig and how we hate reading a giant book to learn programming languages. He was kind to show and explain the Zig code from his midi controller project. It got me curious and I spent some time to better understand `comptime` and `inline` features of Zig.
 
 - Researched for the impossible project for the Impossible Day. I've been wanting to learn more about distributed systems. Some of the ideas are to make a distributed KV store, or read the RAFT paper and eventually try to make one at some point. None of these aligns with my immediate goals, which are learning Rust and finishing Crafting Interpreters, so I'm still figuring out if I even want to attempt anything or not. Maybe I'll try to finish the Scanner chapter of the CI book in Rust.
 - yarr.fyi is great and I've reached the exciting section, Memory.
 
-#### Day 3 - Wednesday, Jan 17th: Sisyphus stuck in integer overflow
+### Day 3 - Wednesday, Jan 17th: Sisyphus stuck in integer overflow
 
 - Attended Creative Coding. The prompt was "With great power...". I created a game to demonstrate integer overflow, which can occur when using a higher power (exponent). After much pondering, I decided to base the game on Sisyphus. In it, Sisyphus pushes the boulder up a mountain but never reaches the top due to integer overflow, thus remaining stuck in a loop. [Here's](https://playcode.io/1729085) the codepen.
 
@@ -72,7 +72,7 @@ The week was a blend of learning, collaboration, and exploration of new concepts
 - Hung out at RC Cafe.
 - Non-programming talks were great! Though, they also made me hungry at 4 am (Not great). Pietro gave a talk on his favourite pasta recipes. I loved how detailed he was, he brought all the utensils and equipment on his desk to show us. [Here](https://docs.google.com/presentation/d/1D6eN7J-UlPvsJttPWKrdqxDCVfKMAdH-2Iu0KJ5hGBA/edit#slide=id.p) are the slides for it. Jen Hsin gave an impromptu talk on instant noodles.
 
-#### Day 4 - Thursday, Jan 18th: Presentations!
+### Day 4 - Thursday, Jan 18th: Presentations!
 
 - Impossible day - In the meeting I said I would like to make a distributed KV store. I did research a bit on it and then decided not to do so. I just found a bit of momentum with Crafting Interpreters and learning Rust, and I didn't want to distract myself with anything new. Perhaps I'll do something on the next Impossible day.
 
@@ -84,7 +84,7 @@ The week was a blend of learning, collaboration, and exploration of new concepts
 
 - Weekly presentations and impossible day demos.
 
-#### Day 5 - Friday, Jan 19th:
+### Day 5 - Friday, Jan 19th:
 
 - Finished reading Chapter 3 of Crafting Interpreters.
 

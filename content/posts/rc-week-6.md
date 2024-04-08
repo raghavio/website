@@ -6,7 +6,7 @@ draft: false
 
 It's been 6 weeks. Nobody told me time flies here. It's the end of the batch for Winter 1, and I'll miss those folks. I hope they stick around for a bit. I slumped with journaling this week due to many factors. Hence, this post will be short.
 
-#### Day 1 - Monday, Feb 05th
+### Day 1 - Monday, Feb 05th
 
 Coffee chat with Shannon Werle. We discussed our time at RC, working at a small startup vs. a big company, and worker cooperatives.
 
@@ -14,7 +14,7 @@ I moved my Lox implementation to a [Clojure app](https://github.com/raghavio/cra
 
 Thought about an app to practice my Rust: a Pomodoro tracker/reminder TUI (or CLI) that pauses notifications during focus time and enables them back for break time. Maybe also send reminders every few hours to journal, drink water and eat meals.
 
-#### Day 2 - Tuesday, Jan 07th
+### Day 2 - Tuesday, Jan 07th
 
 Started with the Zoom check-in. The QOTD was 'Would you rather come early or leave late?'.
 Those who know me can attest that, forget to come early, I can't even manage to come on time.
@@ -27,6 +27,6 @@ Looking at compiler code is funny. It's the opposite of all the good software pr
 
 I'm finished going through Chapter 6 of Crafting Interpreters. I'm yet to do the code implementation though which I'll be doing today!
 
-### Reflections
+## Reflections
 
 This week was a bit overwhelming, both at RC and outside, which resulted in me stopping journaling and checking in. I'm not proud, but it is what it is. I picked up a lot from the reflections call, thanks to all the lovely folks who shared their introspection. I look forward to implementing some of the advice, mostly from Will on meditation and setting the day. I also missed the Crafting Interpreters meeting, but I finished my [interpreter implementation](https://github.com/raghavio/crafting-interpreters/commit/ffa3e4e79ecde27cb1b4c2e1f9abacf0f1a2f658) over the weekend.

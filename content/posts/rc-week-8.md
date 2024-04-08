@@ -6,7 +6,7 @@ draft: false
 
 It's a bit crazy to think that by the end of this week, I'll have been here for two months.
 
-#### Day 1 - Monday, Feb 19th
+### Day 1 - Monday, Feb 19th
 
 Started the day by doing the snail rustlings with the usual gang and Ludwig Schubert. He was very helpful with some of the Rust concepts, and in between, we got to see his plotted patterns. You ought to check them out in his check-ins.
 
@@ -21,7 +21,7 @@ After a couple of hours, I finally [wrapped up](https://github.com/raghavio/craf
 
 Some highlights as I was lazy around the last few days. I've made my peace with it now. I remind myself that I'm actually on a sabbatical and it's okay to just do nothing or chill sometimes. Not all days can be productive.
 
-#### Day 2 - Tuesday, Feb 20th
+### Day 2 - Tuesday, Feb 20th
 
 I had a wonderful chat with Shae Matijs about Emacs. I was in awe of hearing him talk about Emacs and his setup. It just got me so excited to diligently learn it. He has been using Emacs for 25 years! He got his email, calendar, Twitter, terminal, etc., all inside Emacs.
 
@@ -32,13 +32,13 @@ I got to know about [ripgrep](https://github.com/BurntSushi/ripgrep) from him, a
 After the call, I started reading Chapter 9 of Crafting Interpreters. It is about control flow statements, and we will implement the if block and while/for loop in it. A small one compared to the last chapter.
 
 
-#### Day 3 - Wednesday, Feb 21st
+### Day 3 - Wednesday, Feb 21st
 
 The creative coding prompt was 'Go to an extreme, move back to a more comfortable place'. After quite a bit of pondering, it made me think of job hunting and interviews. How the interviews are always on the extreme end but the work afterward not so much. [This tweet](https://twitter.com/TheJackForge/status/1760672776359440442) perfectly captures what I mean. 
 I decided to mimic the Leetcode interview round. An online code editor where you're asked to finish inverting a binary tree. After successful submission, you get an alert saying "Congratulations! You can get comfortable now and center a div.". I forked a JS playground and made some changes to the app.
 ![](/creative-coding-feb-21.png)
 
-#### Day 4 - Thursday, Feb 22nd
+### Day 4 - Thursday, Feb 22nd
 
 I had a pairing session scheduled with Kevin. He wanted to do some reverse engineering, and his idea was to view the network traffic of online games and tamper with it locally. We picked Chess (Lichess) since we both play it. Lichess uses Websockets for communication. After figuring out the payload, we tried sending our own requests to the connection, and it was working fine. We also tried to make some illegal moves, but those messages got ignored, obviously.
 
@@ -69,10 +69,10 @@ After the session, I quickly finished reading Chapter 9 of Crafting Interpreters
 
 After the meeting, I got curious to know how functional languages handle TCO in JVM since it doesn't support TCO due to security reasons. It messes up the stack frame. Clojure and other languages use an explicit keyword to let the compiler know that the function needs to be optimized for tail call recursion. This code then gets transformed into Java's while loop. Clojure has `recur` and Kotlin has `tailrec`.
 
-#### Day 5 - Friday, Feb 23rd
+### Day 5 - Friday, Feb 23rd
 
 I went out for the hangs and was extremely tired when I got back home. So, no work.
 
-#### Weekend
+### Weekend
 
 I went to a 2-day music festival in my city and saw some great artists, particularly my favorite jazz pianist, Tigran Hamasyan. It was such an experience to catch him live, even though he didn't play my [favorite song](https://youtu.be/-VOZLG-FlvI).
