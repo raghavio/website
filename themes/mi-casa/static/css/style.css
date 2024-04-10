@@ -1,45 +1,85 @@
+html {
+  font-size: 62.5%;
+}
+
 body {
-  margin: 0.5rem;
   line-height: 1.5;
-  font-size: 1.2rem;
   overflow: hidden;
   height: 100vh;
   margin-right: 0;
+  font-size: 1.8rem;
+}
+
+h1 {
+  font-size: 3.2rem;
+}
+
+h2 {
+  font-size: 2.4rem;
+}
+
+h3 {
+  font-size: 1.9rem;
+}
+
+h4 {
+  font-size: 1.6rem;
+}
+
+h5 {
+  font-size: 1.3rem;
+}
+
+h6 {
+  font-size: 1rem;
 }
 
 aside {
   flex: 1 0 auto;
+  min-height: 70%;
+  padding: 20px 20px 0 20px;
+  background-image: url("/pictures/black-ikat.jpg");
+  background-size: 100% auto;
+  background-repeat: repeat;
 }
 
 nav {
-    font-family: "Nunito", sans-serif;
-    font-weight: 300;
-    color: rgb(255, 255, 255);
-    height: calc(100% - 1rem);
-    padding: 20px;
-    background-image: url("/pictures/black-ikat.jpg");
-    background-size: 100% auto;
-    background-repeat: repeat;
-    margin-right: 0.5rem;
+  font-family: "Nunito", sans-serif;
+  font-weight: 300;
+  color: rgb(255, 255, 255);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 #name {
   text-shadow: 0 0 3px #ffffff, 0 0 20px #ffffff;
-    line-height: 1;
-    letter-spacing: 5px;
-    margin: 0;
-    font-size: 2.2rem;
+  line-height: 1;
+  letter-spacing: 5px;
+  margin: 0;
+  font-size: 3.5rem;
 }
 
 #sub-name {
   font-weight: 500;
   margin: 0;
-  font-size: 1.3rem;
+  padding-bottom: 20%;
+}
+
+.nav-items {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#socials {
+  margin-top: auto;
+  padding-bottom: 20px;
 }
 
 nav ul {
   list-style-type: none;
-  font-size: 1.5rem;
+  font-size: 2.5rem;
   padding: 0;
 }
 
@@ -53,63 +93,64 @@ nav a {
 }
 
 .gallery {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(18, 5vw);
-    grid-gap: 0.5rem;
-    filter: brightness(55%);
-    margin-right: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(auto-fill, 5vw);
+  grid-gap: 8px;
+  filter: brightness(55%);
+  margin-right: 8px;
+  margin-left: 8px;
 }
 
 .gallery__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .gallery__item {
   margin: 0;
 }
 
-.gallery__item:nth-of-type(1) {
-    grid-area: 1 / 1 / span 5 / span 5;
+.gallery__item.pondy {
+  grid-area: 1 / 1 / span 5 / span 5;
 }
 
-.gallery__item:nth-of-type(2) {
-    grid-area: 1 / 6 / span 7 / span 3;
+.gallery__item.desk {
+  grid-area: 1 / 6 / span 7 / span 3;
 }
 
-.gallery__item:nth-of-type(3) {
-    grid-area: 6 / 1 / span 5 / span 3;
+.gallery__item.tattoo1 {
+  grid-area: 6 / 1 / span 5 / span 3;
 }
 
-.gallery__item:nth-of-type(4) {
-    grid-area: 6 / 4 / span 4 / span 2;
+.gallery__item.cup {
+  grid-area: 6 / 4 / span 4 / span 2;
 }
 
-.gallery__item:nth-of-type(5) {
-    grid-area: 14 / 4 / span 4 / span 2;
+.gallery__item.piano {
+  grid-area: 14 / 4 / span 4 / span 2;
 }
 
-.gallery__item:nth-of-type(6) {
-    grid-area: 11 / 1 / span 8 / span 3;
+.gallery__item.terrarium {
+  grid-area: 11 / 1 / span 8 / span 3;
 }
 
-.gallery__item:nth-of-type(7) {
-    grid-area: 10 / 4 / span 4 / span 5;
+.gallery__item.desk1 {
+  grid-area: 10 / 4 / span 4 / span 5;
 }
 
-.gallery__item:nth-of-type(8) {
-    grid-area: 8 / 6 / span 2 / span 3;
+.gallery__item.soundcloud {
+  grid-area: 8 / 6 / span 2 / span 3;
 }
 
-.gallery__item:nth-of-type(9) {
-    grid-area: 14 / 6 / span 4 / span 3;
+.gallery__item.spotify {
+  grid-area: 14 / 6 / span 4 / span 3;
 }
 
-.gallery__item:nth-of-type(10) {
-    grid-area: 18 / 4 / span 1 / span 5;
+.gallery__item.shirt-print-btn {
+  grid-area: 18 / 4 / span 1 / span 5;
 }
 
 .wrapper {
@@ -122,13 +163,15 @@ nav a {
   overflow: auto;
 }
 
-.highlight-container, .highlight {
+.highlight-container,
+.highlight {
   position: relative;
 }
 
 .highlight-container {
   display: inline-block;
 }
+
 .highlight-container:before {
   content: " ";
   display: block;
@@ -143,4 +186,111 @@ nav a {
   left: -1px;
   border-radius: 20% 25% 20% 24%;
   padding: 10px 3px 3px 10px;
+}
+
+.gallery__item.bloodywood {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  nav {
+    margin: 0;
+  }
+
+  .wrapper {
+    flex-direction: column;
+  }
+
+  .container {
+    overflow: visible;
+  }
+
+  body {
+    margin: 0;
+    overflow: auto;
+    font-size: 1.6rem;
+  }
+
+  section {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  h1 {
+    font-size: 2.1rem;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  h3 {
+    font-size: 1.6rem;
+  }
+
+  h4 {
+    font-size: 1.2rem;
+  }
+
+  #name {
+    font-size: 2.4rem;
+  }
+
+  #sub-name {
+    padding-bottom: 20px;
+  }
+
+  nav ul {
+    font-size: 1.9rem;
+  }
+
+  .gallery {
+    grid-gap: 4px;
+    margin: 4px 0 0 0;
+  }
+
+  .gallery__item.pondy {
+    grid-area: 1 / 1 / span 10 / span 8;
+  }
+
+  .gallery__item.desk {
+    grid-area: 11 / 5 / span 12 / span 4;
+  }
+
+  .gallery__item.tattoo1 {
+    grid-area: 11 / 1 / span 9 / span 4;
+  }
+
+  .gallery__item.piano {
+    grid-area: 20 / 1 / span 10 / span 4;
+  }
+
+  .gallery__item.soundcloud {
+    grid-area: 32 / 1 / span 5 / span 8;
+  }
+
+  .gallery__item.spotify {
+    grid-area: 37 / 1 / span 6 / span 8;
+  }
+
+  .gallery__item.cup {
+    grid-area: 23 / 5 / span 9 / span 4;
+  }
+
+  .gallery__item.terrarium {
+    grid-area: 43 / 1 / span 13 / span 4;
+  }
+
+  .gallery__item.desk1 {
+    grid-area: 56 / 1 / span 7 / span 8;
+  }
+
+  .gallery__item.shirt-print-btn {
+    grid-area: 30 / 1 / span 2 / span 4;
+  }
+
+  .gallery__item.bloodywood {
+    display: block;
+    grid-area: 43 / 5 / span 13 / span 4;
+  }
 }
