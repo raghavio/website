@@ -1,44 +1,44 @@
 <aside>
-  <nav title="{{ if .IsPage }}
+  <nav title="{{ if and .IsPage (ne .File.BaseFileName "desk") }}
        {{ with .Site.GetPage "section" "posts" }} 
        {{ .Params.sidebar_title }} 
        {{ end }} 
        {{ else }} Ikat print from my shirt. {{ end }}">
 
-    <a href="/">
+    <a title="" href="/"> <!-- Empty title tag to hide parent's title on links. The title is only for background img.-->
       <h1 id="name">Raghav Sharma</h1>
       <h2 id="sub-name">/rʌɡhəv ˈʃɑrmə/ — राघव शर्मा</h2>
     </a>
     <div class="nav-items">
       <ul>
         <li>
-          <a href="#"><span class="highlight-container"><span class="highlight">What's This Website?</span></span></a>
+          <a title="" href="#"><span class="highlight-container"><span class="highlight">What's This Website?</span></span></a>
         </li>
         <li>
-          <a href="/desk"><span class="highlight-container"><span class="highlight">Desk Setup</span></span></a>
+          <a title="" href="/desk"><span class="highlight-container"><span class="highlight">Desk Setup</span></span></a>
         </li>
         <li>
-          <a href="#"><span class="highlight-container"><span class="highlight">Recurse Center</span></span></a>
+          <a title="" href="#"><span class="highlight-container"><span class="highlight">Recurse Center</span></span></a>
         </li>
       </ul>
       <ul>
-        <li><a href="/" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span
+        <li><a title="" href="/" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span
                 class="highlight">Home</span></span></a></li>
 
-        <li><a href="/posts" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span
+        <li><a title="" href="/posts" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span
                 class="highlight">Blog</span></span></a></li>
-        <li><a href="/about" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span
+        <li><a title="" href="/about" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span
                 class="highlight">About</span></span></a></li>
-        <li><a href="/resume.pdf" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span
+        <li><a title="" href="/resume.pdf" style="text-decoration: none; color: inherit;"><span class="highlight-container"><span
                 class="highlight">Resume</span></span></a></li>
       </ul>
       <ul id="socials">
         <li>
-          <a href="https://github.com/raghavio" style="text-decoration: none; color: inherit;"><span
+          <a title="" href="https://github.com/raghavio" style="text-decoration: none; color: inherit;"><span
               class="highlight-container"><span class="highlight">GitHub</span></span></a>
         </li>
         <li>
-          <a href="https://twitter.com/raghavio" style="text-decoration: none; color: inherit;"><span
+          <a title="" href="https://twitter.com/raghavio" style="text-decoration: none; color: inherit;"><span
               class="highlight-container"><span class="highlight">Twitter</span></span></a>
         </li>
       </ul>
