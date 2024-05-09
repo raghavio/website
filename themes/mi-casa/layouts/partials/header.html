@@ -1,7 +1,9 @@
 <aside>
   <nav title="{{ if .IsPage }}
-       {{ with .Site.GetPage " section" "posts" }} {{ .Params.sidebar_title }} {{ end }} {{ else }} Ikat print from my
-    shirt. {{ end }}">
+       {{ with .Site.GetPage "section" "posts" }} 
+       {{ .Params.sidebar_title }} 
+       {{ end }} 
+       {{ else }} Ikat print from my shirt. {{ end }}">
 
     <a href="/">
       <h1 id="name">Raghav Sharma</h1>
@@ -13,7 +15,7 @@
           <a href="#"><span class="highlight-container"><span class="highlight">What's This Website?</span></span></a>
         </li>
         <li>
-          <a href="#"><span class="highlight-container"><span class="highlight">Desk Setup</span></span></a>
+          <a href="/desk"><span class="highlight-container"><span class="highlight">Desk Setup</span></span></a>
         </li>
         <li>
           <a href="#"><span class="highlight-container"><span class="highlight">Recurse Center</span></span></a>

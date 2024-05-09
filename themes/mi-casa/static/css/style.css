@@ -52,6 +52,19 @@ nav {
   flex-direction: column;
 }
 
+#imageContainer {
+  position: relative;
+  width: 100%;
+}
+
+#mapOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+
 #name {
   text-shadow: 0 0 3px #ffffff, 0 0 20px #ffffff;
   line-height: 1;
@@ -90,6 +103,11 @@ nav li {
 nav a {
   text-decoration: none;
   color: inherit;
+}
+
+section {
+  margin-right: 8px;
+  margin-left: 8px;
 }
 
 .gallery {
@@ -190,6 +208,12 @@ nav a {
 
 .gallery__item.bloodywood {
   display: none;
+}
+
+p {
+  /* From custom.css for desk setup content */
+  margin-top: .5em;
+  margin-bottom: .5em
 }
 
 @media (max-width: 768px) {
