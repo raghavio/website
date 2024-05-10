@@ -23,7 +23,6 @@
 
 section {
   background: #A3C7BE !important;
-  min-height: calc(100% - 1rem);
 }
 
 aside {

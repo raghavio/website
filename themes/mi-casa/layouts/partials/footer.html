@@ -1,44 +1,11 @@
-{{ if eq .File.BaseFileName "desk" }}
-<script src="/imageMapResizer.min.js"></script>
-<script>
-    const deskImage = document.getElementById('deskImage');
-    const canvas = document.getElementById('mapOverlay');
-
-    // Function to draw the canvas overlay based on area coordinates
-    function drawOverlay(coords) {
-        canvas.width = deskImage.clientWidth;
-        canvas.height = deskImage.clientHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawings
-        ctx.fillStyle = 'rgba(0, 255, 255, 0.4)'; // Red semi-transparent color
-        ctx.beginPath();
-        ctx.moveTo(coords[0], coords[1]);
-        for (let i = 0; i < coords.length; i += 2) {
-            ctx.lineTo(coords[i], coords[i + 1]);
-        }
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    window.onresize = function () {
-        canvas.width = deskImage.clientWidth;
-        canvas.height = deskImage.clientHeight;
-    }
-
-    window.onload = function () {
-        imageMapResize();
-        // Attach hover events to <area> elements
-        const areas = document.querySelectorAll('area');
-        areas.forEach(area => {
-            area.addEventListener('mouseover', function () {
-                const coords = this.coords.split(',').map(Number);
-                drawOverlay(coords);
-            });
-            area.addEventListener('mouseout', function () {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            });
-        });
-    }
-</script>
-{{end}}
+<footer>
+    <div class="hit-counter">
+        <span class="visitor-text">You are visitor number:</span>
+        <img src="/pictures/lost_counter.png" alt="Oldschool hit counter.">
+    </div>
+    <div class="rc-scout">
+        <i class="rc-scout__logo"></i>
+        Want to become a better programmer? <a target="_blank" style="color: #FAFA00"
+            href="https://www.recurse.com/scout/click?t=21820bc9c687dc992c04bdcdcc68b0d3">Join the Recurse Center!</a>
+    </div>
+</footer>

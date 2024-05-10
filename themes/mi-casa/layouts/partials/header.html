@@ -1,8 +1,8 @@
 <aside>
   <nav title="{{ if and .IsPage (ne .File.BaseFileName "desk") }}
-       {{ with .Site.GetPage "section" "posts" }} 
-       {{ .Params.sidebar_title }} 
-       {{ end }} 
+       {{ with .Site.GetPage "section" "posts" }}
+       {{ .Params.sidebar_title }}
+       {{ end }}
        {{ else }} Ikat print from my shirt. {{ end }}">
 
     <a title="" href="/"> <!-- Empty title tag to hide parent's title on links. The title is only for background img.-->
@@ -15,7 +15,7 @@
           <a title="" href="#"><span class="highlight-container"><span class="highlight">What's This Website?</span></span></a>
         </li>
         <li>
-          <a title="" href="/desk"><span class="highlight-container"><span class="highlight">Desk Setup</span></span></a>
+          <a title="" href="/desk"><span class="highlight-container"><span class="highlight">Desk tour</span></span></a>
         </li>
         <li>
           <a title="" href="#"><span class="highlight-container"><span class="highlight">Recurse Center</span></span></a>
