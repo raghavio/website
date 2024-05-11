@@ -97,6 +97,9 @@ footer img {
   left: 0;
   pointer-events: none;
 }
+.heading {
+  padding-bottom: 20%;
+}
 
 #name {
   line-height: 1;
@@ -111,8 +114,13 @@ footer img {
 #sub-name {
   font-weight: 300;
   margin: 0;
-  padding-bottom: 20%;
   font-family: "Palanquin", sans-serif;
+}
+
+#pronouns {
+  font-family: 'Noto Sans', sans-serif;
+  margin: 0;
+  font-weight: 300;
 }
 
 .nav-items {
@@ -144,7 +152,7 @@ nav a {
 section {
   margin-right: 8px;
   margin-left: 8px;
-  min-height: calc(100% - 95.88px);
+  min-height: calc(100% - 95.88px); /* this is an awful hack to push footer down */
 }
 
 .gallery {
@@ -302,7 +310,7 @@ p {
     font-size: 3.5rem;
   }
 
-  #sub-name {
+  .heading {
     padding-bottom: 20px;
   }
 
