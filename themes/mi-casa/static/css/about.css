@@ -1,0 +1,18 @@
+.profile-pic {
+  float: right;
+  width: 35%;
+  margin: 15px 0 5px 15px;
+}
+
+article {
+  margin: 0; /* About page should be aligned to the left instead of center */
+}
+
+@media (max-width: 425px) {
+  .profile-pic {
+    float: none;
+    width: 100%;
+    margin: 0;
+  }
+
+}

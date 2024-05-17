@@ -11,7 +11,7 @@
   --pre-color: #f8f8f2;
   --pre-bg-color: #272822;
   --bq-color: #000;
-  --hr-color: #ccc;
+  --hr-color: #333;
   --pagination-bg-color: #fafafa;
   --pagination-link-color: #696969;
   --post-info-color: grey;
@@ -34,16 +34,9 @@ aside {
 }
 
 article {
-  max-width: 42em;
+  max-width: 52em;
   margin: 0 auto;
   padding: 20px;
-}
-
-article img {
-  max-width: 100%;
-  display: block;
-  height: auto;
-  margin: 0 auto .5em
 }
 
 article img {
@@ -67,17 +60,28 @@ article video {
   margin: 0 auto .5em
 }
 
+article ::-moz-selection {
+  background: var(--link-color);
+  color: var(--bg-color);
+  text-shadow: none
+}
+
+article ::selection {
+  background: var(--link-color);
+  color: var(--bg-color)
+}
+
 article a {
   color: var(--link-color);
   text-decoration: none;
-  border-bottom: 1px solid transparent
+  border-bottom: 3px solid var(--link-color)
 }
 
 article a:hover,
 article a:focus,
 article a:active {
-  color: var(--link-state-color);
-  border-bottom: 1px solid var(--link-state-border-color)
+  background-color: var(--link-color);
+  color: var(--bg-color);
 }
 
 article a:active,
