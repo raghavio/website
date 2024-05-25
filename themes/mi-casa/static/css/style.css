@@ -71,6 +71,7 @@ footer {
     margin-left: 8px;
     color: #ffffff;
     font-size: 1.5rem;
+    display: none;
 }
 
 .visitor-text {
@@ -162,12 +163,14 @@ section {
 }
 
 .gallery {
-  display: grid;
+  display: none;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(auto-fill, 5vw);
   grid-gap: 8px;
   filter: brightness(55%);
   margin-bottom: 8px;
+  opacity: 0;
+  transition: opacity 2s;
 }
 
 .gallery__img {
@@ -373,4 +376,23 @@ p {
     display: block;
     grid-area: 43 / 5 / span 13 / span 4;
   }
+}
+
+
+#door-intro {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+}
+
+#doorImage {
+    width: 100%;
+    height: 100vh;
+    cursor: pointer;
+    transition: transform 2s, opacity 2s;
+    transform-origin: center bottom;
 }
