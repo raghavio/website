@@ -29,3 +29,5 @@ enableEmoji = true
     [[params.social]]
         id = 'email'
         name = 'raghavsharma@outlook.in'    
+[markup.goldmark.renderer]
+unsafe = true

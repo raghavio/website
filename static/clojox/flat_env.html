@@ -1,0 +1,5023 @@
+<html>
+  <head>
+    <style>
+      body {margin: 0; padding: 5px; background-color: #ffffff}
+      button {font: 12px sans-serif;}
+      p {margin: 5px 0 5px 0}
+      #hl {position: absolute; display: none; overflow: hidden; white-space: nowrap; pointer-events: none; background-color: #00000000; outline: 0.5px solid #222; height: 15px}
+      #hl span {padding: 0 3px 0 3px}
+      #status {overflow: hidden; white-space: nowrap}
+      #match {overflow: hidden; white-space: nowrap; display: none; float: right; text-align: right}
+      * {box-sizing:border-box,margin:.25em 0}
+      .col{display:table-cell}
+      .col-1{width:5%}
+      .col-2{width:15%}
+      .col-3{width:22%}
+      .col-4{width:30%}
+      .col-5{width:40%}
+      .col-6{width:50%}
+      .row{display:table;border-spacing:0.2em 0;width:100%;display:flex}
+      .w-100{width:100%;display:flex}
+      .graphCol{flex: 80%; padding: 0.25em;}
+      .configCol{flex: 20%; padding: 0.25em;}
+      .configBlock{position:fixed; overflow-y:auto; top: 5px; bottom: 5px; width:19%;}
+      .sidebarToggle{font: 10px; width:10; padding:0;}
+      .margins {margin: 5px 1px}
+      .vmargins {margin: 0px 1px;}
+      .context {display: inline-block; position:fixed; top:0px; left:0px; min-width:200px;
+                color:#fff;  background:#262933; font-size:9pt; border:1px solid #333333;
+                border-radius:6px; box-shadow:2px 2px 2px -1px rgba(0, 0, 0, 0.5);
+                padding:3px 0px; -webkit-touch-callout:none; -webkit-user-select:none;
+                -khtml-user-select:none; -moz-user-select:none; -ms-user-select:none;
+                user-select:none; z-index:200;}
+      .context .item {padding:4px 19px; cursor:default; color:inherit;}
+      .context .item:hover { background:#2777FF;}
+      .context .item:hover .hotkey {color: #fff;}
+      .context .disabled {color:#878B90;}
+      .context .disabled:hover {background:inherit;}
+      .context .disabled:hover .hotkey {color: #878B90;}
+      .context .separator {margin:4px 0px; height:0; padding:0; border-top:1px solid #454545;}
+      .hotkey {color:#878B90; float:right;}
+    </style>
+  </head>
+  <body style='font: 12px Verdana, sans-serif'>
+    <div class="c">
+      <div class="row">
+        <div class="graphCol">
+          <div id='canvasDiv'><canvas id='canvas' style='width: 100%;'></canvas></div>
+          <div id='box'><div id='hl'><span></span></div></div>
+          <p id='match'>Matched: <span id='matchedLabel'></span></p>
+          <p id='status'>&nbsp;</p>
+        </div>
+        <button class="sidebarToggle" onclick="toggleSidebarVisibility()">&lt;</button>
+        <div class="configCol">
+          <div class="configBlock">
+            <div id="titleDiv">
+              <b><center><span id="graphTitleSpan">Flamegraph</span></center></b>
+              <hr>
+            </div>
+            <div class="row">
+              <label for="highlightInput">Highlight:</label>
+              <input placeholder="String or /regex/" name="highlightInput" id="highlightInput"/>
+            </div>
+            <div class="row">
+              <button onclick="highlightApply()">Highlight</button>
+              <button onclick="highlightClear()">Clear</button>
+            </div>
+            <br>
+            <hr>
+            <br>
+
+            <label>Minimal frame width (in pixels):</label><br>
+            <input id="minFrameWidthInPx" value="0.25"/><br>
+            <div>
+              <label><input type="checkbox" id="isReversedInput" checked>Reversed</label>
+              <span id="isNormalizedDiv" style="display:none;">
+                <label><input type="checkbox" id="isNormalized" name="isNormalized">Normalized</label>
+              </span>
+            </div>
+            <div>
+              <label><input type="radio" id="sortByNameRadio" name="sortBy" value="name">Sort by name</label>
+              <label><input type="radio" id="sortByWidthRadio" name="sortBy" value="width" checked>Sort by width</label>
+            </div>
+            <br>
+
+            <div class="row">
+              <div class="col">
+                <label for="newTransformType">Add a transform:</label>
+
+                <select name="newTransformType" id="newTransformType">
+                  <option value="filter">Filter</option>
+                  <option value="remove">Remove</option>
+                  <option value="replace">Replace</option>
+                </select>
+              </div>
+              <div class="col col-2">
+                <button onclick="addNewTransform()">Add</button>
+              </div>
+            </div>
+            <p><i>Right-click any stackframe to add common transforms.</i></p>
+            <br>
+
+            <div id="transformsContainer">
+            </div>
+
+            <div id="transformReplaceTemplate" style="display:none">
+              <div class="row">
+                <div class="col col-3">
+                  <label>Replace:</label><br>
+                </div>
+                <div class="col">
+                  <input type="checkbox" class="chkEnabled" onclick="refreshAfterEnabledToggle()" checked>
+                  <button class="minibtn btnMoveUp" title="Move up" onclick="moveTransformUp(this)">↑</button>
+                  <button class="minibtn btnMoveDown" title="Move down" onclick="moveTransformDown(this)">↓</button>
+                  <button class="minibtn btnClone" title="Clone" onclick="cloneTransform(this)">☍</button>
+                  <button class="minibtn btnDelete" title="Delete" onclick="deleteTransform(this)">✖</button>
+                </div>
+              </div>
+              <div class="row" style="margin-top:1px;margin-bottom:1px">
+                <div class="col w-100 no-vmargins">
+                  <input class="what no-vmargins w-100" placeholder="String or /regex/"/><br>
+                </div>
+              </div>
+              <div class="row" style="margin-top:1px;margin-bottom:1px">
+                <div class="col w-100 no-vmargins">
+                  <input class="replacement no-vmargins w-100" placeholder="Replacement"/><br>
+                </div>
+              </div>
+            </div>
+
+            <div id="transformFilterTemplate" style="display:none" class="margins">
+              <div class="row">
+                <div class="col col-3">
+                  <label class="label">Filter:</label><br>
+                </div>
+                <div class="col">
+                  <input type="checkbox" class="chkEnabled" onclick="refreshAfterEnabledToggle()" checked>
+                  <button class="minibtn btnMoveUp" title="Move up" onclick="moveTransformUp(this)">↑</button>
+                  <button class="minibtn btnMoveDown" title="Move down" onclick="moveTransformDown(this)">↓</button>
+                  <button class="minibtn btnClone" title="Clone" onclick="cloneTransform(this)">☍</button>
+                  <button class="minibtn btnDelete" title="Delete" onclick="deleteTransform(this)">✖</button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col w-100 margins">
+                  <input class="what margins w-100" placeholder="String or /regex/"/><br>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+            <button onclick="applyConfiguration()">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // This file was derived from flamegraph.html from the project
+// https://github.com/jvm-profiling-tools/async-profiler
+// Licensed under the Apache License, Version 2.0. Copyright 2020 Andrei Pangin
+
+/// Constants
+const canvas = document.getElementById('canvas');
+const c = canvas.getContext('2d');
+const hl = document.getElementById('hl');
+const status = document.getElementById('status');
+const matchContainer = document.getElementById('match');
+const transformFilterTemplate = document.getElementById('transformFilterTemplate');
+const transformReplaceTemplate = document.getElementById('transformReplaceTemplate');
+const sidebarToggleButton = document.getElementsByClassName('sidebarToggle')[0];
+const sidebarWidth = document.getElementsByClassName('configCol')[0].offsetWidth
+const qString = new URLSearchParams(window.location.search)
+
+var sidebarVisible = true;
+var canvasWidth;
+
+if (qString.get('hide-sidebar') == 'true') {
+  sidebarVisible = false;
+}
+
+function updateSidebarState() {
+  let style = oneByClass(document, 'configCol').style
+  if (sidebarVisible) {
+    style.display = 'block';
+    sidebarToggleButton.innerText = ">";
+    canvasWidth = window.innerWidth - sidebarWidth - 36;
+  } else {
+    style.display = 'none';
+    sidebarToggleButton.innerText = "<";
+    canvasWidth = window.innerWidth - 36;
+  }
+}
+
+updateSidebarState();
+
+var graphTitle = "";
+var isDiffgraph = false;
+var normalizeDiff = false, b_scale_factor;
+var reverseGraph = false;
+var idToFrame = ["[deoptimization]",
+"Deoptimization::uncommon_trap",
+"Deoptimization::fetch_unroll_info_helper",
+"Deoptimization::create_vframeArray",
+"vframeArray::allocate",
+"vframeArray::fill_in",
+"vframeArrayElement::fill_in",
+"compiledVFrame::expressions",
+"ScopeDesc::decode_scope_values",
+"[no_Java_frame]",
+"[not_walkable_Java]",
+"BarrierSetNMethod::nmethod_stub_entry_barrier",
+"CodeCache::find_blob",
+"CodeHeap::find_blob",
+"G1BarrierSet::invalidate",
+"G1BarrierSetRuntime::write_ref_array_post_entry",
+"Interpreter",
+"SharedRuntime::raw_exception_handler_for_return_address",
+"__tls_get_addr",
+"__tls_get_addr@plt",
+"[unknown]",
+"__GI___lll_lock_wait",
+"entry_SYSCALL_64_after_hwframe_[k]",
+"do_syscall_64_[k]",
+"syscall_enter_from_user_mode_[k]",
+"__GI_mprotect",
+"x64_sys_call_[k]",
+"__x64_sys_mprotect_[k]",
+"do_mprotect_pkey_[k]",
+"mprotect_fixup_[k]",
+"vma_merge_[k]",
+"vma_prepare_[k]",
+"down_write_[k]",
+"__GI_read",
+"__x64_sys_read_[k]",
+"ksys_read_[k]",
+"vfs_read_[k]",
+"seq_read_[k]",
+"seq_read_iter_[k]",
+"show_map_[k]",
+"show_map_vma_[k]",
+"seq_file_path_[k]",
+"seq_path_[k]",
+"mangle_path_[k]",
+"_int_malloc",
+"asm_exc_page_fault_[k]",
+"exc_page_fault_[k]",
+"do_user_addr_fault_[k]",
+"handle_mm_fault_[k]",
+"__handle_mm_fault_[k]",
+"handle_pte_fault_[k]",
+"do_anonymous_page_[k]",
+"folio_add_lru_vma_[k]",
+"folio_add_lru_[k]",
+"folio_batch_move_lru_[k]",
+"release_pages_[k]",
+"vma_alloc_folio_[k]",
+"__folio_alloc_[k]",
+"__alloc_pages_[k]",
+"get_page_from_freelist_[k]",
+"rmqueue_[k]",
+"__rmqueue_pcplist_[k]",
+"[unknown_Java]",
+"OptoRuntime::rethrow_C",
+"clojox.interpreter/handle-plus",
+"clojure.core/reduce",
+"flush_icache_stub",
+"slow_subtype_check Runtime1 stub",
+"__GI___madvise",
+"__x64_sys_madvise_[k]",
+"do_madvise_[k]",
+"madvise_walk_vmas_[k]",
+"madvise_vma_behavior_[k]",
+"zap_page_range_single_[k]",
+"unmap_single_vma_[k]",
+"unmap_page_range_[k]",
+"zap_pmd_range.isra.0_[k]",
+"_compound_head_[k]",
+"__GI___pthread_cond_broadcast",
+"__x64_sys_futex_[k]",
+"do_futex_[k]",
+"futex_wake_[k]",
+"wake_up_q_[k]",
+"try_to_wake_up_[k]",
+"_raw_spin_unlock_irqrestore_[k]",
+"__GI___pthread_enable_asynccancel",
+"__futex_abstimed_wait_cancelable64",
+"syscall_exit_to_user_mode_[k]",
+"exit_to_user_mode_prepare_[k]",
+"exit_to_user_mode_loop_[k]",
+"__rseq_handle_notify_resume_[k]",
+"rseq_get_rseq_cs_[k]",
+"blkcg_maybe_throttle_current_[k]",
+"mem_cgroup_handle_over_high_[k]",
+"futex_wait_[k]",
+"futex_wait_queue_[k]",
+"schedule_[k]",
+"__schedule_[k]",
+"finish_task_switch.isra.0_[k]",
+"futex_wait_setup_[k]",
+"futex_q_lock_[k]",
+"_raw_spin_lock_[k]",
+"native_queued_spin_lock_slowpath_[k]",
+"hrtimer_cancel_[k]",
+"hrtimer_try_to_cancel.part.0_[k]",
+"__new_sem_wait_slow64.constprop.0",
+"__printf_buffer_write",
+"_int_free",
+"clojox.core.main",
+"clojure.lang.RestFn.applyTo",
+"clojox.core/-main",
+"clojox.core/run-file",
+"clojox.core/run",
+"clj-async-profiler.core/start",
+"clj-async-profiler.core/start/fn--1218",
+"clojure.lang.RestFn.invoke",
+"clojure.core/slurp",
+"clojure.core/apply",
+"clojure.lang.AFn.applyToHelper",
+"clojure.java.io/reader",
+"clojure.java.io/fn--11530/G--11519--11537",
+"clojure.core/-cache-protocol-fn",
+"clojure.core/expand-method-impl-cache",
+"clojure.core/maybe-min-hash",
+"clojure.core/first--5449",
+"clojure.lang.RT.first",
+"clojure.lang.LazySeq.first",
+"clojure.lang.LazySeq.seq",
+"clojure.lang.LazySeq.sval",
+"clojure.core/filter/fn--5962",
+"clojure.core/maybe-min-hash/fn--6980",
+"clojure.core/seq--5467",
+"clojure.lang.RT.seq",
+"clojure.core/map/fn--5935",
+"clojure.core/map",
+"clojox.core/run/fn--1257",
+"InterpreterRuntime::_new",
+"InstanceKlass::initialize_impl",
+"InstanceKlass::link_class_impl",
+"Verifier::verify",
+"clj-async-profiler.core/stop",
+"clj-async-profiler.core/make-command-string",
+"clojure.core/format",
+"java.lang.String.format",
+"java.util.Formatter.format",
+"java.util.Formatter$FixedString.print",
+"java.lang.StringBuilder.append",
+"java.lang.AbstractStringBuilder.append",
+"clojox.interpreter/interpret",
+"clojox.interpreter.Print.evaluate",
+"clojox.interpreter.Call.evaluate",
+"clojox.function.Function.call",
+"clojox.interpreter.Block.evaluate",
+"clojox.interpreter.Return.evaluate",
+"clojox.interpreter.Binary.evaluate",
+"clojox.function.Function.arity",
+"clojox.interpreter.If.evaluate",
+"clojox.interpreter/assert-numbers",
+"clojure.core/-",
+"clojure.lang.Numbers.minus",
+"clojure.lang.Numbers$DoubleOps.add",
+"clojure.lang.RT.nth",
+"clojox.interpreter.Variable.evaluate",
+"clojox.environment/lookup",
+"clojure.core/contains?",
+"clojure.lang.RT.contains",
+"clojure.lang.PersistentArrayMap.containsKey",
+"clojure.lang.PersistentArrayMap.indexOf",
+"clojure.lang.PersistentArrayMap.indexOfObject",
+"clojure.lang.KeywordLookupSite$1.get",
+"clojure.lang.PersistentVector.count",
+"clojure.lang.RT.count",
+"Runtime1::exception_handler_for_pc",
+"exception_handler_for_pc_helper",
+"clojox.environment/define",
+"clojure.core/assoc--5481",
+"clojure.lang.RT.assoc",
+"clojure.lang.PersistentArrayMap.assoc",
+"clojure.lang.Util.equivPred",
+"clojure.lang.Util.hash",
+"java.lang.String.hashCode",
+"java.lang.String.isLatin1",
+"clojure.lang.Util$2.equiv",
+"clojure.lang.RT.get",
+"clojure.lang.PersistentArrayMap.valAt",
+"java.lang.String.equals",
+"clojure.core/number?",
+"clojure.lang.Tuple.create",
+"clojure.lang.RT.vector",
+"clojure.lang.LazilyPersistentVector.createOwning",
+"OptoRuntime::new_array_C",
+"InstanceKlass::allocate_objArray",
+"MemAllocator::allocate",
+"MemAllocator::mem_allocate_inside_tlab_slow",
+"G1CollectedHeap::allocate_new_tlab",
+"G1CollectedHeap::attempt_allocation_slow",
+"G1AllocRegion::new_alloc_region_and_allocate",
+"G1CollectedHeap::new_mutator_alloc_region",
+"G1RemSetTrackingPolicy::update_at_allocate",
+"G1FromCardCache::clear",
+"clojure.lang.PersistentVector.seq",
+"oop_disjoint_arraycopy",
+"clojure.lang.Util.classOf",
+"jlox.ReturnException.<init>",
+"java.lang.RuntimeException.<init>",
+"java.lang.Exception.<init>",
+"java.lang.Throwable.<init>",
+"clojure.lang.PersistentVector$ChunkedSeq.first",
+"clojure.lang.PersistentArrayMap.create",
+"clojure.lang.PersistentArrayMap.<init>",
+"clojox.interpreter.Literal.evaluate",
+"clojure.lang.PersistentVector.nth",
+"clojure.lang.PersistentVector.arrayFor",
+"clojure.lang.PersistentVector.<init>",
+"count_memcg_events.constprop.0_[k]",
+"G1CollectedHeap::unsafe_max_tlab_alloc",
+"OptoRuntime::new_instance_C",
+"InstanceKlass::allocate_instance",
+"G1RegionsOnNodes::add",
+"java.lang.Double.doubleValue",
+"caller_is_deopted",
+"folio_add_new_anon_rmap_[k]",
+"__mod_lruvec_page_state_[k]",
+"__mod_lruvec_state_[k]",
+"__mod_node_page_state_[k]",
+"clojure.core/atom",
+"clojure.lang.Atom.<init>",
+"java.util.concurrent.atomic.AtomicReference.<init>",
+"clojure.core/deref",
+"access_error_[k]",
+"JavaThread::pd_last_frame",
+"__pte_offset_map_[k]",
+"__mem_cgroup_charge_[k]",
+"charge_memcg_[k]",
+"try_charge_memcg_[k]",
+"consume_stock_[k]",
+"ObjAllocator::initialize",
+"rmqueue_bulk_[k]",
+"clear_page_erms_[k]",
+"clojure.lang.ARef.<init>",
+"SafepointMechanism::update_poll_values",
+"__folio_throttle_swaprate_[k]",
+"blk_cgroup_congested_[k]",
+"clojure.lang.Var.getRawRoot",
+"CompiledMethod::handler_for_exception_and_pc",
+"G1Allocator::unsafe_max_tlab_alloc",
+"itable stub",
+"StackWatermarkSet::lowest_watermark",
+"clojure.core/<",
+"clojure.lang.Numbers.lt",
+"clojure.lang.PersistentVector.reduce",
+"clojox.interpreter.Call/fn--655",
+"clojure.core.protocols/fn--8178/G--8173--8191",
+"clojure.core.protocols/fn--8236",
+"clojure.core.protocols/seq-reduce",
+"clojure.core.protocols/fn--8204/G--8199--8213",
+"Runtime1::counter_overflow",
+"CompilationPolicy::event",
+"CompilationPolicy::method_invocation_event",
+"CompilationPolicy::call_event",
+"CompilationPolicy::highest_compile_level",
+"lock_vma_under_rcu_[k]",
+"mas_walk_[k]",
+"mtree_range_walk_[k]",
+"clojure.core/empty?",
+"clojure.lang.RT.seqFrom",
+"clojure.lang.PersistentVector.chunkedSeq",
+"clojure.lang.PersistentVector$ChunkedSeq.<init>",
+"clojure.core.protocols/fn--8249",
+"clojox.function.Function/fn--275",
+"clojure.core/next--5451",
+"clojure.lang.RT.next",
+"clojure.lang.Cons.next",
+"clojure.core/map/fn--5939",
+"MutatorAllocRegion::retire",
+"clojure.core$map$fn__5939.<init>",
+"InterpreterRuntime::frequency_counter_overflow",
+"InterpreterRuntime::frequency_counter_overflow_inner",
+"clojure.core/rest--5453",
+"clojure.lang.RT.more",
+"clojure.lang.MethodImplCache.fnFor",
+"clojure.core/conj--5455",
+"clojure.lang.RT.conj",
+"clojure.lang.PersistentVector.cons",
+"clojure.lang.LazySeq.<init>",
+"clojure.core/cons--5441",
+"clojure.lang.RT.cons",
+"clojure.lang.Cons.<init>",
+"clojure.lang.ASeq.more",
+"g1_post_barrier_slow",
+"clojure.core/satisfies?",
+"clojure.core/find-protocol-impl",
+"java.lang.Integer.valueOf",
+"clojure.lang.Util.equiv",
+"clojure.lang.PersistentVector$ChunkedSeq.next",
+"_raw_spin_trylock_[k]",
+"clojure.core/class",
+"clojure.lang.Util.identical",
+"clojure.lang.PersistentList$EmptyList.seq",
+"clojure.lang.ASeq.<init>",
+"clojure.lang.Obj.<init>",
+"clojure.lang.PersistentVector$ChunkedSeq.chunkedNext",
+"java.lang.Double.valueOf",
+"clojure.lang.Numbers$DoubleOps.negate",
+"get_mem_cgroup_from_mm_[k]",
+"clojure.lang.RT.intCast",
+"java.lang.Math.toIntExact",
+"clojure.lang.Cons.more",
+"clojure.core/vector",
+"clojure.lang.PersistentVector.meta",
+"clojure.lang.RT.booleanCast",
+"inc_mm_counter_[k]",
+"percpu_counter_add_batch_[k]",
+"__memset_avx2_unaligned_erms",
+"CompilationPolicy::compile",
+"CompileBroker::compile_method",
+"Method::load_signature_classes",
+"AccessInternal::PostRuntimeDispatch<G1BarrierSet::AccessBarrier<286822ul, G1BarrierSet>, (AccessInternal::BarrierType)3, 286822ul>::oop_access_barrier",
+"clojure.core/not",
+"jlox.Token.lexeme",
+"clojure.lang.Cons.first",
+"__get_vma_policy_[k]",
+"HeapRegion::set_eden",
+"clojure.lang.Numbers.add",
+"policy_node_[k]",
+"clojure.lang.PersistentVector.tailoff",
+"jlox.Token.type",
+"down_read_trylock_[k]",
+"__pte_offset_map_lock_[k]",
+"clojure.core/instance?--5469",
+"G1CollectedHeap::new_region",
+"HeapRegionManager::allocate_free_region",
+"__rcu_read_lock_[k]",
+"AccessInternal::PostRuntimeDispatch<G1BarrierSet::AccessBarrier<598116ul, G1BarrierSet>, (AccessInternal::BarrierType)2, 598116ul>::oop_access_barrier",
+"clojure.lang.RT.isReduced",
+"__next_zones_zonelist_[k]",
+"G1SurvivorRegions::length",
+"clojure.core/distinct?",
+"clojure.lang.RT.set",
+"clojure.lang.PersistentHashSet.createWithCheck",
+"clojure.lang.ATransientSet.conj",
+"clojure.lang.ATransientMap.assoc",
+"clojure.lang.PersistentHashMap$TransientHashMap.doAssoc",
+"clojure.lang.PersistentHashMap.hash",
+"clojure.lang.Util.hasheq",
+"java.lang.ClassLoader.loadClass",
+"jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass",
+"jdk.internal.loader.BuiltinClassLoader.loadClass",
+"jdk.internal.loader.BuiltinClassLoader.loadClassOrNull",
+"jdk.internal.loader.BuiltinClassLoader.findClassOnClassPathOrNull",
+"jdk.internal.loader.BuiltinClassLoader.defineClass",
+"jdk.internal.loader.URLClassPath$JarLoader$2.getBytes",
+"jdk.internal.loader.Resource.getBytes",
+"java.util.zip.InflaterInputStream.read",
+"java.util.zip.ZipFile$ZipFileInflaterInputStream.fill",
+"java.util.zip.Inflater.setInput",
+"jdk.internal.util.Preconditions.checkFromIndexSize",
+"clojox.parser/parse",
+"clojox.parser/parse/fn--999",
+"clojox.parser/declaration",
+"clojox.parser/function",
+"jdk.internal.loader.Resource.getByteBuffer",
+"jdk.internal.loader.Resource.cachedInputStream",
+"jdk.internal.loader.URLClassPath$JarLoader$2.getInputStream",
+"java.util.jar.JarFile.getInputStream",
+"java.util.zip.ZipFile.getInputStream",
+"java.util.Collections$SetFromMap.add",
+"java.util.WeakHashMap.put",
+"java.util.WeakHashMap.hash",
+"java.lang.Object.hashCode",
+"JVM_IHashCode",
+"clojox.parser/statement",
+"clojox.parser/print-statement",
+"clojox.parser/expression",
+"clojox.parser/assignment",
+"clojox.parser/logical-or",
+"clojure.core/partial/fn--5908",
+"clojox.parser/left-right-ast",
+"clojox.parser/logical-and",
+"clojox.parser/equality",
+"clojox.parser/comparison",
+"clojox.parser/term",
+"clojox.parser/factor",
+"clojox.parser/unary",
+"clojox.parser/call",
+"clojox.parser/fn-arguments",
+"jlox.Scanner.scanTokens",
+"jlox.Scanner.scanToken",
+"jlox.Scanner.pasreNumber",
+"java.lang.Double.parseDouble",
+"jdk.internal.math.FloatingDecimal.<clinit>",
+"ConstantPool::klass_at_impl",
+"SystemDictionary::resolve_or_fail",
+"SystemDictionary::resolve_instance_class_or_null",
+"SystemDictionary::load_instance_class",
+"SystemDictionary::load_instance_class_impl",
+"ClassLoader::load_class",
+"KlassFactory::create_from_stream",
+"ClassFileParser::ClassFileParser",
+"ClassFileParser::parse_stream",
+"ClassFileParser::parse_constant_pool_entries",
+"mmap",
+"__x64_sys_mmap_[k]",
+"ksys_mmap_pgoff_[k]",
+"vm_mmap_pgoff_[k]",
+"do_mmap_[k]",
+"mmap_region_[k]",
+"do_vmi_munmap_[k]",
+"do_vmi_align_munmap_[k]",
+"__split_vma_[k]",
+"vm_area_dup_[k]",
+"kmem_cache_alloc_[k]",
+"msort_with_tmp.part.0",
+"start_thread",
+"thread_native_entry",
+"Thread::call_run",
+"ConcurrentGCThread::run",
+"G1ServiceThread::run_service",
+"G1ServiceThread::run_task",
+"G1MonotonicArenaFreeMemoryTask::free_excess_arena_memory",
+"JavaThread::thread_main_inner",
+"CompileBroker::compiler_thread_loop",
+"CompileBroker::invoke_compiler_on_method",
+"C2Compiler::compile_method",
+"Arena::~Arena",
+"Arena::destruct_contents",
+"Compile::Compile",
+"CallGenerator::for_inline",
+"InlineTree::check_can_parse",
+"ciMethod::get_flow_analysis",
+"ciTypeFlow::do_flow",
+"ciTypeFlow::flow_types",
+"ciTypeFlow::df_flow_types",
+"ciTypeFlow::build_loop_tree",
+"ciTypeFlow::Loop::sorted_merge",
+"ciTypeFlow::flow_block",
+"ciTypeFlow::StateVector::apply_one_bytecode",
+"ciBytecodeStream::get_klass",
+"ciEnv::get_klass_by_index_impl",
+"ConstantPool::klass_at_if_loaded",
+"Compile::Code_Gen",
+"Matcher::match",
+"AddPNode::Opcode",
+"Arena::contains",
+"ConNode::Opcode",
+"Matcher::Fixup_Save_On_Entry",
+"Matcher::init_first_stack_mask",
+"Matcher::find_shared",
+"Matcher::is_vshift_con_pattern",
+"Matcher::pd_clone_node",
+"VectorNode::is_vector_shift",
+"Matcher::specialize_generic_vector_operands",
+"Compile::identify_useful_nodes",
+"loadBNode::rule",
+"Matcher::xform",
+"Matcher::match_sfpt",
+"Matcher::match_tree",
+"Matcher::Label_Root",
+"Matcher::ReduceInst",
+"State::MachNodeGenerator",
+"MachOper::operator new",
+"Node::add_req",
+"Type::hashcons",
+"Type::cmp",
+"TypeAryPtr::add_offset",
+"Dict::Insert",
+"TypeAryPtr::eq",
+"Matcher::ReduceInst_Interior",
+"Matcher::ReduceOper",
+"Node::jvms",
+"PhaseBlockLayout::PhaseBlockLayout",
+"PhaseBlockLayout::grow_traces",
+"PhaseCFG::PhaseCFG",
+"PhaseCFG::build_cfg",
+"PhaseCFG::do_global_code_motion",
+"PhaseCFG::build_dominator_tree",
+"PhaseCFG::estimate_block_frequency",
+"CFGLoop::compute_freq",
+"Block::succ_prob",
+"PhaseCFG::global_code_motion",
+"PhaseCFG::implicit_null_check",
+"PhaseCFG::schedule_early",
+"PhaseCFG::replace_block_proj_ctrl",
+"PhaseCFG::schedule_late",
+"Node_Backward_Iterator::next",
+"PhaseCFG::hoist_to_cheaper_block",
+"TypeInt::make",
+"immIOper::constant",
+"PhaseCFG::insert_anti_dependences",
+"Compile::find_alias_type",
+"Compile::flatten_alias_type",
+"ciInstanceKlass::is_instance_klass",
+"PhaseCFG::schedule_node_into_block",
+"Node_Array::insert",
+"PhaseCFG::schedule_local",
+"PhaseCFG::adjust_register_pressure",
+"PhaseCFG::sched_call",
+"PhaseCFG::select",
+"PhaseChaitin::compute_exit_block_pressure",
+"IndexSetIterator::advance_and_next",
+"andI_rReg_immNode::ideal_Opcode",
+"PhaseCFG::schedule_pinned_nodes",
+"PhaseChaitin::gather_lrg_masks",
+"RegMask::is_misaligned_pair",
+"PhaseChaitin::mark_ssa",
+"PhiNode::out_RegMask",
+"PhaseIFG::init",
+"IndexSet::initialize",
+"PhaseLive::compute",
+"PhaseLive::add_liveout",
+"ProjNode::pinned",
+"RegionNode::pinned",
+"storeLNode::ideal_Opcode",
+"PhaseChaitin::Register_Allocate",
+"CProjNode::is_block_proj",
+"MachNode::ideal_reg",
+"MachProjNode::ideal_reg",
+"MachSpillCopyNode::in_RegMask",
+"Node::rematerialize",
+"PhaseAggressiveCoalesce::insert_copies",
+"PhaseCFG::is_uncommon",
+"PhaseChaitin::Select",
+"PhaseChaitin::bias_color",
+"PhaseIFG::re_insert",
+"PhaseChaitin::Simplify",
+"PhaseIFG::remove_node",
+"PhaseChaitin::Split",
+"MachIdealNode::rule",
+"MachNode::rematerialize",
+"rFlagsRegUOper::type",
+"Node::out_grow",
+"__memcpy_avx_unaligned_erms",
+"PhaseChaitin::split_Rematerialize",
+"PhaseChaitin::get_spillcopy_wide",
+"PhaseChaitin::split_USE",
+"loadConPNode::rule",
+"PhaseChaitin::build_ifg_physical",
+"IndexSet::IndexSet",
+"MachNode::Opcode",
+"r15_RegPOper::type",
+"MachProjNode::Opcode",
+"PhaseChaitin::add_input_to_liveout",
+"PhaseChaitin::raise_pressure",
+"convL2I_reg_regNode::rule",
+"PhaseChaitin::compute_initial_block_pressure",
+"PhaseChaitin::interfere_with_live",
+"IndexSet::alloc_block_containing",
+"PhaseChaitin::remove_bound_register_from_interfering_live_ranges",
+"RegMask::Size",
+"PhaseChaitin::remove_node_if_not_used",
+"PhaseChaitin::build_ifg_virtual",
+"PhaseChaitin::cache_lrg_info",
+"PhaseChaitin::de_ssa",
+"MachNode::in_RegMask",
+"MachNode::oper_input_base",
+"MachSafePointNode::in_RegMask",
+"PhaseChaitin::merge_multidefs",
+"PhaseChaitin::post_allocate_copy_removal",
+"PhaseChaitin::elide_copy",
+"PhaseChaitin::yank_if_dead_recurse",
+"PhaseChaitin::skip_copies",
+"PhaseCoalesce::coalesce_driver",
+"PhaseConservativeCoalesce::coalesce",
+"PhaseConservativeCoalesce::copy_copy",
+"IndexSet::lrg_union",
+"PhaseConservativeCoalesce::update_ifg",
+"PhaseIFG::Compute_Effective_Degree",
+"PhaseIFG::effective_degree",
+"PhaseIFG::SquareUp",
+"RegMask::is_bound",
+"jmpDirNode::is_block_proj",
+"jmpDirNode::oper_input_base",
+"loadKlassNode::oper_input_base",
+"PhaseOutput::Output",
+"PhaseOutput::BuildOopMaps",
+"OopFlow::compute_reach",
+"OopFlow::build_oop_map",
+"OopMap::set_oop",
+"PhaseOutput::pd_perform_mach_node_analysis",
+"IntelJccErratum::tag_affected_machnodes",
+"PhaseOutput::scratch_emit_size",
+"CallLeafDirectNode::emit",
+"MacroAssembler::post_call_nop",
+"PhaseOutput::shorten_branches",
+"Node::replace_by",
+"C2_MacroAssembler::arrays_equals",
+"CodeBuffer::initialize_section_size",
+"compB_mem_immNode::emit",
+"Relocation::copy_into",
+"immNKlassOper::constant",
+"string_equalsNode::emit",
+"Assembler::vptest",
+"PhaseOutput::fill_buffer",
+"MachCallNode::returns_pointer",
+"MachSpillCopyNode::implementation",
+"Assembler::movq",
+"PhaseOutput::Process_OopMap_Node",
+"DebugInformationRecorder::create_scope_values",
+"LocationValue::write_on",
+"Location::write_on",
+"DebugInformationRecorder::describe_scope",
+"DebugInformationRecorder::find_sharable_decode_offset",
+"PhaseOutput::FillLocArray",
+"cmovP_regNode::bottom_type",
+"partialSubtypeCheck_vs_ZeroNode::emit",
+"MacroAssembler::check_klass_subtype_slow_path",
+"Assembler::jcc",
+"PhaseOutput::install",
+"PhaseOutput::install_code",
+"ciEnv::register_method",
+"nmethod::new_nmethod",
+"CodeBuffer::finalize_oop_references",
+"RelocIterator::RelocIterator",
+"storeImmINode::emit",
+"storeImmN0Node::ideal_Opcode",
+"Compile::Optimize",
+"AddLNode::bottom_type",
+"BoolNode::Value",
+"CallNode::Value",
+"CmpINode::sub",
+"Compile::final_graph_reshaping",
+"Compile::final_graph_reshaping_walk",
+"Compile::inline_boxing_calls",
+"Compile::inline_incrementally_cleanup",
+"Compile::disconnect_useless_nodes",
+"PhaseRemoveUseless::PhaseRemoveUseless",
+"Compile::update_dead_node_list",
+"Compile::optimize_loops",
+"PhaseIdealLoop::build_and_optimize",
+"CProjNode::is_CFG",
+"IdealLoopTree::iteration_split",
+"IdealLoopTree::adjust_loop_exit_prob",
+"IdealLoopTree::iteration_split_impl",
+"PhaseIdealLoop::do_unswitching",
+"PhaseIdealLoop::create_slow_version_of_loop",
+"PhaseIdealLoop::clone_loop",
+"PhaseIdealLoop::fix_body_edges",
+"PhaseIdealLoop::set_idom",
+"IdealLoopTree::loop_predication",
+"PhaseIdealLoop::loop_predication_impl",
+"ParsePredicates::find_parse_predicate_projections",
+"PathFrequency::to",
+"PhaseIdealLoop::loop_predication_follow_branches",
+"PhaseIdealLoop::loop_predication_impl_helper",
+"PhaseIdealLoop::dominated_by",
+"LoadNode::depends_only_on_test",
+"MemNode::adr_type",
+"AddPNode::bottom_type",
+"ProjNode::is_uncommon_trap_proj",
+"Node::unique_ctrl_out_or_null",
+"Invariance::is_invariant",
+"IdealLoopTree::policy_range_check",
+"IdealLoopTree::reassociate_invariants",
+"LoadBNode::Opcode",
+"MultiNode::is_CFG",
+"Node::pinned",
+"Node_Array::Node_Array",
+"PCTableNode::pinned",
+"PhaseIdealLoop::Dominators",
+"NTarjan::DFS",
+"RegionNode::is_CFG",
+"PhaseIdealLoop::build_loop_early",
+"PhaseIdealLoop::get_early_ctrl",
+"PhaseIdealLoop::build_loop_late",
+"Node::is_CFG",
+"PhaseIdealLoop::build_loop_late_post_work",
+"CountedLoopNode::Opcode",
+"PhaseIdealLoop::compute_lca_of_uses",
+"PhaseIdealLoop::dom_lca_for_get_late_ctrl_internal",
+"PhaseIdealLoop::dom_depth",
+"PhaseIdealLoop::get_ctrl",
+"PhaseIdealLoop::get_late_ctrl_with_anti_dep",
+"Compile::can_alias",
+"ciInstanceKlass::get_canonical_holder",
+"ciInstanceKlass::get_field_by_offset",
+"TypeInstPtr::add_offset",
+"TypeOopPtr::TypeOopPtr",
+"ciInstance::java_lang_Class_klass",
+"ciObjectFactory::get_metadata",
+"TypeNode::bottom_type",
+"PhaseIdealLoop::is_dominator",
+"__strcmp_avx2",
+"CallStaticJavaNode::uncommon_trap_request",
+"PhaseIdealLoop::get_loop",
+"PhaseIdealLoop::build_loop_tree",
+"PhaseIdealLoop::build_loop_tree_impl",
+"PhaseIdealLoop::split_if_with_blocks",
+"IfNode::Opcode",
+"LoadNKlassNode::Opcode",
+"PhaseIdealLoop::split_if_with_blocks_post",
+"PhaseIdealLoop::has_local_phi_input",
+"PhaseIdealLoop::split_thru_phi",
+"PhaseIterGVN::remove_globally_dead_node",
+"Unique_Node_List::remove",
+"PhaseIdealLoop::try_merge_identical_ifs",
+"PhaseIdealLoop::do_split_if",
+"PhaseIdealLoop::split_thru_region",
+"PhaseIdealLoop::try_sink_out_of_loop",
+"PhaseIdealLoop::compute_early_ctrl",
+"PhaseIdealLoop::split_if_with_blocks_pre",
+"ConstraintCastNode::dominating_cast",
+"ConstraintCastNode::higher_equal_types",
+"TypePtr::xmeet",
+"TypeInstPtr::xmeet_helper",
+"TypePtr::MeetResult TypePtr::meet_instptr<TypeInstPtr>",
+"TypePtr::InterfaceSet::intersection_with",
+"TypePtr::InterfaceSet::eq",
+"bool TypePtr::is_same_java_type_as_helper_for_instance<TypeInstPtr, TypeOopPtr>",
+"ciKlass::least_common_ancestor",
+"PhaseIdealLoop::remix_address_expressions",
+"Node::clone",
+"Compile::copy_node_notes_to",
+"Node::replace_edge",
+"Node::set_req_X",
+"PhaseIdealLoop::try_move_store_before_loop",
+"PhaseIterGVN::subsume_node",
+"ProjNode::is_CFG",
+"PhaseIterGVN::optimize",
+"DecodeNNode::Value",
+"Node::hash",
+"PhaseIterGVN::transform_old",
+"CastIINode::Value",
+"ConstraintCastNode::Value",
+"TypeInt::filter_helper",
+"ConstraintCastNode::Identity",
+"IfNode::Ideal",
+"LoadNode::Identity",
+"LoadNode::is_instance_field_load_with_local_phi",
+"TypeAryPtr::base_element_type",
+"Matcher::match_rule_supported",
+"PhaseIterGVN::add_users_to_worklist",
+"PhaseIterGVN::add_users_to_worklist0",
+"PhiNode::Ideal",
+"PhiNode::is_data_loop",
+"RegionNode::is_unreachable_from_root",
+"PhiNode::unique_input",
+"ProjNode::Value",
+"StoreNode::Ideal",
+"InitializeNode::can_capture_store",
+"InitializeNode::detect_init_independence",
+"MemNode::all_controls_dominate",
+"Node::dominates",
+"RegionNode::Value",
+"Compile::remove_speculative_types",
+"NodeHash::hash_find_insert",
+"Type::remove_speculative",
+"VectorSet::VectorSet",
+"ConnectionGraph::do_analysis",
+"CastIINode::Opcode",
+"ConnectionGraph::compute_escape",
+"ConnectionGraph::add_call_node",
+"ciMethod::get_bcea",
+"BCEscapeAnalyzer::BCEscapeAnalyzer",
+"BCEscapeAnalyzer::compute_escape_info",
+"BCEscapeAnalyzer::iterate_blocks",
+"BCEscapeAnalyzer::iterate_one_block",
+"ciBytecodeStream::get_field",
+"ciEnv::get_field_by_index",
+"ciEnv::get_field_by_index_impl",
+"ConstantPool::name_and_type_ref_index_at",
+"ConnectionGraph::add_node_to_connection_graph",
+"ConnectionGraph::complete_connection_graph",
+"ConnectionGraph::add_java_object_edges",
+"ConnectionGraph::split_unique_types",
+"ConnectionGraph::find_inst_mem",
+"ConnectionGraph::split_memory_phi",
+"ConnectionGraph::create_split_phi",
+"MultiNode::proj_out_or_null",
+"MemBarNode::Value",
+"PhaseCCP::analyze",
+"LoadNode::Value",
+"MemNode::can_see_stored_value",
+"PhaseValues::find_long_type",
+"PhaseCCP::fetch_next_node",
+"PhaseCCP::push_more_uses",
+"CallStaticJavaNode::Opcode",
+"PhaseCCP::push_and",
+"PhaseCCP::push_loadp",
+"PhiNode::Value",
+"TypeOopPtr::singleton",
+"PhaseCCP::do_transform",
+"PhaseCCP::transform",
+"Node::has_special_unique_user",
+"TypeInt::singleton",
+"PhaseIdealLoop::optimize",
+"IdealLoopTree::do_remove_empty_loop",
+"IdealLoopTree::empty_loop_with_data_nodes",
+"IdealLoopTree::empty_loop_with_extra_nodes_candidate",
+"PhaseIdealLoop::clone_loop_handle_data_uses",
+"GrowableArrayWithAllocator<float, GrowableArray<float> >::grow",
+"IfNode::pinned",
+"Node_Array::grow",
+"PhaseValues::makecon",
+"PhaseValues::uncached_makecon",
+"ConINode::Opcode",
+"IdealLoopTree::is_member",
+"RethrowNode::is_CFG",
+"CallStaticJavaNode::Ideal",
+"Node::remove_dead_region",
+"Compile::remove_useless_node",
+"ConPNode::Opcode",
+"LoadNKlassNode::Identity",
+"TypePtr::interfaces",
+"LoadNode::Ideal",
+"MemNode::Ideal_common",
+"TypeInstPtr::eq",
+"Node::destruct",
+"RegionNode::Ideal",
+"PhaseIterGVN::PhaseIterGVN",
+"CmpPNode::Opcode",
+"TypeInstPtr::is_meet_subtype_of_helper",
+"TypeOopPtr::filter_helper",
+"TypeInstPtr::make",
+"IfNode::Ideal_common",
+"IfNode::search_identical",
+"IfNode::dominated_by",
+"MemNode::find_previous_store",
+"MemBarNode::Ideal",
+"MemBarNode::remove",
+"NodeHash::grow",
+"Chunk::next_chop",
+"pthread_mutex_unlock@@GLIBC_2.2.5",
+"Node::is_dead_loop_safe",
+"PhiNode::Identity",
+"PhiNode::is_diamond_phi",
+"XorLNode::Ideal",
+"PhaseMacroExpand::eliminate_macro_nodes",
+"PhaseMacroExpand::eliminate_allocate_node",
+"PhaseMacroExpand::expand_macro_nodes",
+"PhaseIterGVN::register_new_node_with_optimizer",
+"G1BarrierSetC2::is_gc_barrier_node",
+"CastPPNode::Opcode",
+"PhiNode::hash",
+"ProjNode::hash",
+"PhaseMacroExpand::expand_allocate_common",
+"PhaseMacroExpand::expand_initialize_membar",
+"PhaseMacroExpand::initialize_object",
+"TypeInstPtr::cast_to_exactness",
+"PhaseMacroExpand::migrate_outs",
+"PhaseMacroExpand::replace_input",
+"PhaseMacroExpand::expand_subtypecheck_node",
+"Phase::gen_subtype_check",
+"LoadKlassNode::make",
+"PhaseRenumberLive::PhaseRenumberLive",
+"StoreNode::Value",
+"ParseGenerator::generate",
+"Parse::Parse",
+"Parse::do_all_blocks",
+"GraphKit::clone_map",
+"Parse::do_one_block",
+"Parse::do_call",
+"Compile::call_generator",
+"InlineTree::ok_to_inline",
+"ciTypeFlow::StateVector::do_invoke",
+"ciBytecodeStream::get_method",
+"ciObjectFactory::create_new_metadata",
+"GraphKit::kill_dead_locals",
+"ciMethod::liveness_at_bci",
+"MethodLiveness::get_liveness_at",
+"MethodLiveness::BasicBlock::get_liveness_at",
+"MethodLiveness::BasicBlock::compute_gen_kill_range",
+"GraphKit::record_profiled_arguments_for_speculation",
+"TypeFunc::make",
+"LibraryIntrinsic::generate",
+"LibraryCallKit::inline_native_clone",
+"GraphKit::null_check_common",
+"GraphKit::cast_not_null",
+"PhaseGVN::transform_no_reclaim",
+"TypeAryPtr::xmeet_helper",
+"Parse::array_load",
+"Parse::array_addressing",
+"GraphKit::uncommon_trap",
+"GraphKit::make_runtime_call",
+"GraphKit::add_safepoint_edges",
+"Node::add_req_batch",
+"Parse::do_anewarray",
+"TypeAryKlassPtr::make",
+"ciEnv::get_method_by_index_impl",
+"ciEnv::lookup_method",
+"LinkResolver::linktime_resolve_virtual_method_or_null",
+"LinkResolver::linktime_resolve_virtual_method",
+"LinkResolver::resolve_method",
+"LinkResolver::check_method_loader_constraints",
+"SystemDictionary::check_signature_loaders",
+"SystemDictionary::add_loader_constraint",
+"LinkResolver::resolve_static_call_or_null",
+"LinkResolver::resolve_static_call",
+"LinkResolver::lookup_method_in_klasses",
+"InstanceKlass::uncached_lookup_method",
+"LateInlineVirtualCallGenerator::generate",
+"VirtualCallGenerator::generate",
+"GraphKit::set_edges_for_java_call",
+"TypeTuple::make_range",
+"TypeOopPtr::make_from_klass_common",
+"Parse::build_exits",
+"Parse::adjust_map_after_if",
+"Parse::sharpen_type_after_if",
+"Parse::do_exits",
+"GraphKit::insert_mem_bar",
+"MergeMemNode::Ideal",
+"PredictedCallGenerator::generate",
+"Parse::do_field_access",
+"Parse::do_put_xxx",
+"GraphKit::access_store_at",
+"BarrierSetC2::store_at",
+"BarrierSetC2::store_at_resolved",
+"GraphKit::store_to_memory",
+"Parse::do_get_xxx",
+"GraphKit::access_load_at",
+"BarrierSetC2::load_at",
+"BarrierSetC2::load_at_resolved",
+"GraphKit::make_load",
+"ciMethod::method_data",
+"ciMethodData::load_data",
+"GraphKit::replace_in_map",
+"Parse::do_new",
+"TypeKlassPtr::make",
+"ciInstanceKlass::transitive_interfaces",
+"ciInstanceKlass::compute_transitive_interfaces",
+"ciInstanceKlass::ciInstanceKlass",
+"ciKlass::ciKlass",
+"ciObjectFactory::get_symbol",
+"Symbol::increment_refcount",
+"GraphKit::type_check_receiver",
+"GraphKit::load_object_klass",
+"LoadNode::hash",
+"ciTypeFlow::StateVector::do_getstatic",
+"ciField::ciField",
+"Node::set_req",
+"ModRefBarrierSetC2::store_at_resolved",
+"G1BarrierSetC2::post_barrier",
+"GraphKit::final_sync",
+"MergeMemNode::make",
+"MergeMemNode::MergeMemNode",
+"Parse::do_if",
+"Parse::do_ifnull",
+"PreserveJVMState::PreserveJVMState",
+"Parse::do_one_bytecode",
+"ConvL2INode::Value",
+"TypeInt::hash",
+"Parse::return_current",
+"Parse::call_register_finalizer",
+"ciInstanceKlass::has_finalizable_subclass",
+"Dependencies::find_finalizable_subclass",
+"ClassHierarchyIterator::next",
+"Klass::subklass",
+"TypePtr::InterfaceSet::InterfaceSet",
+"TypeOopPtr::eq",
+"GraphKit::subtype_check_receiver",
+"GraphKit::gen_subtype_check",
+"SubTypeCheckNode::sub",
+"TypeKlassPtr::exact_klass_helper",
+"ReplacedNodes::transfer_from",
+"Compile::optimize_inlining",
+"ciMethod::find_monomorphic_target",
+"ciMethod::resolve_invoke",
+"LinkResolver::resolve_interface_call_or_null",
+"LinkResolver::runtime_resolve_interface_method",
+"LinkResolver::lookup_instance_method_in_klasses",
+"InstanceKlass::find_method_index",
+"GraphKit::set_predefined_input_for_runtime_call",
+"MergeMemNode::Identity",
+"ciTypeFlow::ciTypeFlow",
+"ciMethod::get_method_blocks",
+"ciMethodBlocks::ciMethodBlocks",
+"ciMethodBlocks::do_analysis",
+"ciMethod::load_code",
+"TypeTuple::make_domain",
+"IdealKit::load",
+"LoadNode::make",
+"Node::Node",
+"AddPNode::Identity",
+"Method::invocation_count",
+"GraphKit::make_constant_from_field",
+"Type::make_constant_from_field",
+"ciField::constant_value",
+"ciInstance::field_value_impl",
+"IdealKit::if_then",
+"IdealKit::copy_cvstate",
+"MergeMemNode::iteration_setup",
+"GraphKit::new_instance",
+"Parse::do_instanceof",
+"GraphKit::gen_instanceof",
+"GraphKit::null_check_oop",
+"Parse::create_entry_map",
+"ciMethod::ciMethod",
+"vmSymbols::find_sid",
+"GraphKit::set_all_memory_call",
+"GraphKit::maybe_cast_profiled_receiver",
+"Parse::do_checkcast",
+"GraphKit::gen_checkcast",
+"TypeInstKlassPtr::eq",
+"Parse::array_store",
+"Parse::array_store_check",
+"ciMethod::get_method_at_bci",
+"GraphKit::set_map_clone",
+"GrowableArrayWithAllocator<Node*, GrowableArray<Node*> >::expand_to",
+"Arena::grow",
+"Chunk::operator new",
+"__GI___lll_lock_wake",
+"GraphKit::new_array",
+"GraphKit::set_output_for_allocation",
+"GraphKit::make_slow_call_ex",
+"LinkResolver::linktime_resolve_interface_method_or_null",
+"LinkResolver::resolve_interface_method",
+"Compile::alias_type",
+"TypeInstPtr::hash",
+"JVMState::clone_shallow",
+"InlineTree::try_to_inline",
+"MergeMemNode::memory_at",
+"TypeAry::cleanup_speculative",
+"Parse::merge_common",
+"GraphKit::record_profiled_return_for_speculation",
+"ciMethod::return_profiled_type",
+"ciMethodData::data_from",
+"resource_allocate_bytes",
+"InlineTree::should_not_inline",
+"LibraryCallKit::inline_native_getClass",
+"GraphKit::access_load",
+"Parse::init_blocks",
+"Parse::Block::init_graph",
+"ConNode::hash",
+"CmpINode::Ideal",
+"ciEnv::get_klass_by_name_impl",
+"SystemDictionary::find_constrained_instance_or_array_klass",
+"Dictionary::find",
+"LibraryCallKit::inline_native_Class_query",
+"LibraryCallKit::generate_array_guard_common",
+"LibraryCallKit::generate_guard",
+"AndINode::min_opcode",
+"GraphKit::add_parse_predicates",
+"GraphKit::add_parse_predicate",
+"ReplacedNodes::clone",
+"G1BarrierSetC2::pre_barrier",
+"GraphKit::transfer_exceptions_into_jvms",
+"Node::add_prec",
+"Node::grow",
+"Dictionary::find_class",
+"AllocateNode::Ideal_allocation",
+"ciMethod::parameter_profiled_type",
+"Compiler::compile_method",
+"Compilation::Compilation",
+"Compilation::compile_method",
+"Compilation::compile_java_method",
+"Compilation::build_hir",
+"IR::IR",
+"IRScope::IRScope",
+"GraphBuilder::GraphBuilder",
+"GraphBuilder::iterate_all_blocks",
+"GraphBuilder::iterate_bytecodes_for_block",
+"GraphBuilder::access_field",
+"ciObjectFactory::get",
+"ciObjectFactory::create_new_object",
+"ciObject::ciObject",
+"JNIHandleBlock::allocate_handle",
+"GraphBuilder::invoke",
+"Canonicalizer::do_NullCheck",
+"GraphBuilder::try_inline",
+"GraphBuilder::try_inline_full",
+"ciSignature::ciSignature",
+"IR::eliminate_null_checks",
+"Optimizer::eliminate_null_checks",
+"NullCheckEliminator::iterate_one",
+"GrowableArrayWithAllocator<BlockBegin*, GrowableArray<BlockBegin*> >::grow",
+"NullCheckEliminator::visit",
+"Compilation::emit_code_body",
+"LIR_Assembler::emit_code",
+"LIR_Assembler::emit_lir_list",
+"LIR_Assembler::append_code_stub",
+"LIR_Assembler::emit_call",
+"LIR_Assembler::ic_call",
+"LIR_Assembler::add_call_info",
+"CodeEmitInfo::record_debug_info",
+"OopMapSet::add_gc_map",
+"LIR_Assembler::emit_op2",
+"LIR_Assembler::arith_op",
+"LIR_Assembler::emit_slow_case_stubs",
+"CounterOverflowStub::emit_code",
+"Compilation::emit_lir",
+"BlockList::iterate_forward",
+"non-virtual thunk to LIRGenerator::block_do",
+"Instruction::as_Phi",
+"LIRGenerator::do_Base",
+"LIRGenerator::do_Invoke",
+"LIRGenerator::state_for",
+"MethodLiveness::BasicBlock::compute_gen_kill_single",
+"LinearScan::do_linear_scan",
+"BitMap::is_same",
+"LinearScan::allocate_registers",
+"LinearScanWalker::activate_current",
+"LinearScanWalker::alloc_free_reg",
+"LinearScanWalker::free_collect_inactive_fixed",
+"Range::intersects_at",
+"LinearScan::build_intervals",
+"Interval::add_use_pos",
+"LinearScan::add_register_hints",
+"LinearScan::compute_local_live_sets",
+"Compilation::install_code",
+"nmethod::nmethod",
+"CodeBuffer::copy_relocations_to",
+"Dependencies::assert_evol_method",
+"GrowableArrayWithAllocator<int, GrowableArray<int> >::expand_to",
+"ciEnv::ciEnv",
+"CompileQueue::get",
+"VMThread::run",
+"VMThread::inner_execute",
+"SafepointSynchronize::begin",
+"OopStorage::trigger_cleanup_if_needed",
+"VMThread::evaluate_operation",
+"VM_Operation::evaluate",
+"VM_G1CollectForAllocation::doit",
+"G1CollectedHeap::do_collection_pause_at_safepoint",
+"G1CollectedHeap::do_collection_pause_at_safepoint_helper",
+"G1YoungCollector::collect",
+"G1GCPhaseTimes::reset",
+"G1YoungCollector::evacuate_initial_collection_set",
+"G1RemSet::merge_heap_roots",
+"WorkerThreads::run_task",
+"sem_post@GLIBC_2.2.5",
+"nmethod::oops_do_marking_epilogue",
+"G1YoungCollector::post_evacuate_collection_set",
+"G1BatchedTask::~G1BatchedTask",
+"G1PostEvacuateCollectionSetCleanupTask2::FreeCollectionSetTask::~FreeCollectionSetTask",
+"AbsSeq::dsd",
+"G1SurvRateGroup::finalize_predictions",
+"G1CollectedHeap::rebuild_free_region_list",
+"HeapRegionManager::rebuild_free_list",
+"AllocateHeap",
+"os::malloc",
+"G1PostEvacuateCollectionSetCleanupTask1::G1PostEvacuateCollectionSetCleanupTask1",
+"G1RemSet::create_cleanup_after_scan_heap_roots_task",
+"G1YoungCollector::process_discovered_references",
+"ReferenceProcessor::process_discovered_references",
+"ReferenceProcessor::process_phantom_refs",
+"ReferenceProcessor::run_task",
+"G1STWRefProcProxyTask::work",
+"G1ParEvacuateFollowersClosure::do_void",
+"G1ParScanThreadState::steal_and_trim_queue",
+"void WeakProcessor::weak_oops_do<G1STWIsAliveClosure, G1KeepAliveClosure>",
+"WeakProcessor::Task::Task",
+"OopStorage::BasicParState::BasicParState",
+"G1YoungCollector::pre_evacuate_collection_set",
+"TruncatedSeq::add",
+"G1CollectedHeap::satisfy_failed_allocation",
+"WatcherThread::run",
+"PeriodicTask::real_time_tick",
+"ChunkPoolCleaner::task",
+"ThreadCritical::ThreadCritical",
+"WorkerThread::run",
+"G1BatchedTask::work",
+"G1ParScanThreadStateSet::flush_stats",
+"G1ParScanThreadState::~G1ParScanThreadState",
+"G1PostEvacuateCollectionSetCleanupTask2::FreeCollectionSetTask::do_work",
+"G1CollectedHeap::par_iterate_regions_array",
+"FreeCSetClosure::do_heap_region",
+"CompositeElapsedCounterSource::now",
+"clock_gettime@@GLIBC_2.17",
+"G1CollectedHeap::free_region",
+"HeapRegion::hr_clear",
+"HeapRegionRemSet::clear_locked",
+"FreeListAllocator::reset",
+"G1CardSet::clear",
+"HeapRegionClaimer::claim_region",
+"G1PreEvacuateCollectionSetBatchTask::JavaThreadRetireTLABAndFlushLogs::do_work",
+"ThreadLocalAllocBuffer::retire",
+"G1EvacuateRegionsBaseTask::work",
+"G1EvacuateRegionsTask::evacuate_live_objects",
+"G1GCPhaseTimes::phase_name",
+"G1ParScanThreadState::trim_queue_to_threshold",
+"void OopOopIterateBackwardsDispatch<G1ScanEvacuatedObjClosure>::Table::oop_oop_iterate_backwards<InstanceKlass, narrowOop>",
+"void OopOopIterateBackwardsDispatch<G1ScanEvacuatedObjClosure>::Table::oop_oop_iterate_backwards<InstanceMirrorKlass, narrowOop>",
+"void G1ScanEvacuatedObjClosure::do_oop_work<narrowOop>",
+"SpinPause",
+"TaskTerminator::offer_termination",
+"___pthread_mutex_lock",
+"G1EvacuateRegionsTask::scan_roots",
+"G1RemSet::scan_heap_roots",
+"G1ScanHRForRegionClosure::scan_heap_roots",
+"asm_sysvec_apic_timer_interrupt_[k]",
+"sysvec_apic_timer_interrupt_[k]",
+"irq_exit_rcu_[k]",
+"__irq_exit_rcu_[k]",
+"__do_softirq_[k]",
+"run_rebalance_domains_[k]",
+"update_blocked_averages_[k]",
+"void OopOopIterateBackwardsDispatch<G1ScanEvacuatedObjClosure>::Table::oop_oop_iterate_backwards<InstanceRefKlass, narrowOop>",
+"G1STWSubjectToDiscoveryClosure::do_object_b",
+"void OopOopIterateDispatch<G1ScanCardClosure>::Table::oop_oop_iterate<InstanceMirrorKlass, narrowOop>",
+"G1RootProcessor::evacuate_roots",
+"G1RootProcessor::process_java_roots",
+"ClassLoaderDataGraph::roots_cld_do",
+"G1CLDScanClosure::do_cld",
+"ClassLoaderData::oops_do",
+"G1ParCopyClosure<(G1Barrier)1, false>::do_oop",
+"G1ParScanThreadState::copy_to_survivor_space",
+"Threads::possibly_parallel_oops_do",
+"Thread::oops_do",
+"HandleArea::oops_do",
+"JavaThread::oops_do_frames",
+"G1CodeBlobClosure::do_code_blob",
+"nmethod::oops_do_process_weak",
+"G1NmethodProcessor::do_regular_processing",
+"nmethod::oops_do",
+"G1CodeBlobClosure::HeapRegionGatheringOopClosure::do_oop",
+"G1ParCopyClosure<(G1Barrier)2, false>::do_oop",
+"G1CodeRootSet::contains",
+"metadata_Relocation::copy_into",
+"nmethod::fix_oop_relocations",
+"Relocation::pd_set_data_value",
+"Assembler::locate_operand",
+"Method::bcp_from",
+"frame::oops_code_blob_do",
+"ImmutableOopMap::oops_do",
+"void OopMapDo<OopClosure, DerivedOopClosure, SkipNullValue>::iterate_oops_do<RegisterMap>",
+"G1ParCopyClosure<(G1Barrier)0, false>::do_oop",
+"frame::oops_interpreted_do",
+"InterpreterOopMap::iterate_oop",
+"JavaThread::oops_do_no_frames",
+"JNIHandleBlock::oops_do",
+"Thread::oops_do_no_frames",
+"G1RootProcessor::process_vm_roots",
+"G1GCParPhaseTimesTracker::G1GCParPhaseTimesTracker",
+"G1RemSet::scan_collection_set_regions",
+"G1ScanCollectionSetRegionClosure::do_heap_region",
+"G1CodeRootSet::nmethods_do",
+"RelocIterator::advance_over_prefix",
+"pte_offset_map_nolock_[k]",
+"HeapRegionRemSet::add_code_root",
+"oop_Relocation::oop_value",
+"metadata_Relocation::unpack_data",
+"G1MergeHeapRootsTask::work",
+"G1MergeHeapRootsTask::G1CombinedClosure::do_heap_region",
+"G1CardSet::is_empty",
+"G1MergeHeapRootsTask::G1MergeCardSetClosure::do_heap_region",
+"G1GCParPhaseTimesTracker::~G1GCParPhaseTimesTracker",
+"[vdso]",
+"G1PrepareEvacuationTask::work",
+"HeapRegionManager::par_iterate",
+"G1PrepareEvacuationTask::G1PrepareRegionsClosure::do_heap_region",
+"G1CardSet::reset_table_scanner",
+"G1RemSet::prepare_region_for_scan",
+"get_futex_key_[k]",
+"void WeakProcessor::Task::work<G1STWIsAliveClosure, G1KeepAliveClosure>",
+"WeakProcessorParTimeTracker::WeakProcessorParTimeTracker",
+"WeakProcessorTimes::record_worker_items",
+];
+var initialStacks = [];
+var stacks;
+
+var _lastInsertedStack = null;
+
+function a(frameIds, samples) {
+  var same = frameIds[0];
+  var frames = (same > 0) ? _lastInsertedStack.slice(0,same) : [];
+
+  for (var i = 1, len = frameIds.length; i < len; i++) {
+    frames.push(idToFrame[frameIds[i]]);
+  }
+
+  _lastInsertedStack = frames;
+  initialStacks.push({stackStr: frames.join(";"), samples: samples});
+}
+
+var totalSamplesA = 0, totalSamplesB = 0;
+
+function d(frameIds, samples_a, samples_b) {
+  var same = frameIds[0];
+  var frames = (same > 0) ? _lastInsertedStack.slice(0,same) : [];
+
+  for (var i = 1, len = frameIds.length; i < len; i++) {
+    frames.push(idToFrame[frameIds[i]]);
+  }
+
+  totalSamplesA += samples_a;
+  totalSamplesB += samples_b;
+
+  _lastInsertedStack = frames;
+  initialStacks.push({stackStr: frames.join(";"),
+                      samples_a: samples_a, samples_b: samples_b});
+}
+
+function _extractRegexPrefix(s) {
+  let parsed = s.match(/^\/\.\+(.+)\/g$/);
+  if (parsed != null) {
+    return new RegExp(parsed[1], 'g');
+  }
+}
+
+function _stringToMaybeRegex(s) {
+  if (s == null) return null;
+  let parsed = s.match(/^\/(.+)\/$/);
+  if (parsed != null)
+    return new RegExp(parsed[1], 'g');
+  else
+    return s;
+}
+
+function _makeTransform(type, enabled, what, replacement) {
+  let what2 = (typeof(what) == 'string') ? _stringToMaybeRegex(what) : what;
+  let what2Str = what2.toString();
+  let prefix = (what2 instanceof RegExp) ?
+      _extractRegexPrefix(what2Str) : null;
+  if (type == 'replace')
+    return { type: type, enabled: enabled, what: what2, replacement: replacement, prefix: prefix}
+  else
+    return { type: type, enabled: enabled, what: what2}
+}
+
+var userTransforms = [];
+
+function match(string, obj) {
+  if (typeof(obj) == 'string') {
+    return string.includes(obj);
+  } else
+    return string.match(obj);
+}
+
+function applyReplacement(string, what, replacement, prefix) {
+  var s = string;
+  var prevMatch = null;
+  if (prefix != null) {
+    while (true) {
+      let match = prefix.exec(string);
+      if (match == null) {
+        if (prevMatch == null)
+          return s;
+        else {
+          s = string.substring(Math.max(prevMatch.index, 0));
+          return s.replace(prefix, replacement);
+        }
+      } else {
+        prevMatch = match;
+      }
+    }
+  }
+  return s.replaceAll(what, replacement);
+}
+
+function transformStacks() {
+  console.time("transformStacks");
+  let diff = isDiffgraph;
+  var result;
+  if (userTransforms.length > 0) {
+    var xformedMap = {};
+    for (var i = 0; i < initialStacks.length; i++) {
+      var stack = initialStacks[i];
+      var xformedStr = ";" + stack.stackStr + ";";
+      var useIt = true;
+
+      for (var t = 0; t < userTransforms.length; t++) {
+        const transform = userTransforms[t];
+        if (transform.enabled && transform.what != '') {
+          if (transform.type == 'replace') {
+            xformedStr = applyReplacement(xformedStr, transform.what,
+                                          transform.replacement, transform.prefix);
+          } else if (transform.type == 'filter') {
+            if (!match(xformedStr, transform.what))
+              useIt = false;
+          } else if (transform.type == 'remove') {
+            if (match(xformedStr, transform.what))
+              useIt = false;
+          }
+        }
+        if (!useIt) break;
+      }
+
+      xformedStr = xformedStr.substring(1,xformedStr.length-1);
+
+      if (useIt)
+        if (diff) {
+          let newVal = (xformedMap[xformedStr] || {});
+          newVal.samples_a = (newVal.samples_a || 0) + stack.samples_a;
+          newVal.samples_b = (newVal.samples_b || 0) + stack.samples_b;
+          xformedMap[xformedStr] = newVal;
+        } else
+          xformedMap[xformedStr] = stack.samples + (xformedMap[xformedStr] || 0);
+    }
+
+    var xformedStacks = [];
+    for (xformedStr in xformedMap) {
+      if (diff) {
+        let val = xformedMap[xformedStr];
+        xformedStacks.push({stackStr: xformedStr, samples_a: val.samples_a, samples_b: val.samples_b})
+      } else
+        xformedStacks.push({stackStr: xformedStr, samples: xformedMap[xformedStr]});
+    }
+    result = xformedStacks;
+  } else
+    result = initialStacks;
+
+  console.timeEnd("transformStacks");
+  return result;
+}
+
+console.time("data exec time");
+
+  a([0,0,1,2,3,4,5,6,7,8,],1);
+a([0,9,],1);
+a([0,10,11,],1);
+a([1,12,],1);
+a([1,13,],1);
+a([1,14,],44);
+a([1,15,],125);
+a([1,16,],1);
+a([1,17,],1);
+a([1,18,],35);
+a([1,19,],3);
+a([0,20,21,],1);
+a([2,22,23,24,],1);
+a([1,25,22,23,26,27,28,29,30,31,32,],1);
+a([1,33,22,23,26,34,35,36,37,38,39,40,41,42,43,],1);
+a([1,44,],3);
+a([2,45,46,47,],1);
+a([5,48,49,50,51,52,53,54,55,],1);
+a([9,56,57,58,59,60,61,],1);
+a([0,62,14,],7);
+a([1,15,],10);
+a([1,20,63,],1);
+a([1,64,],1);
+a([1,65,],3);
+a([1,66,],1);
+a([1,67,],13);
+a([0,68,22,23,26,69,70,71,72,73,74,75,76,77,],1);
+a([0,78,22,23,26,79,80,81,],1);
+a([7,82,83,84,],1);
+a([0,85,],1);
+a([0,86,],8);
+a([1,22,23,24,],1);
+a([3,87,88,89,],1);
+a([6,90,91,],1);
+a([6,92,],2);
+a([6,93,],1);
+a([3,26,79,80,94,95,96,97,98,],1);
+a([7,99,100,101,102,],1);
+a([7,103,104,84,],1);
+a([0,105,],1);
+a([0,106,],1);
+a([0,107,],1);
+a([0,108,109,110,111,112,113,114,115,116,117,109,118,115,119,120,121,122,123,124,125,126,127,128,129,130,117,131,132,127,128,133,134,],1);
+a([5,135,136,137,138,139,],1);
+a([6,140,141,142,143,144,144,145,146,146,147,],1);
+a([6,148,149,150,151,152,153,154,150,151,152,153,154,150,151,152,153,154,150,151,152,153,154,150,151,152,153,154,150,151,152,153,154,150,151,152,153,154,150,151,152,153,154,150,151,152,153,154,150,151,152,153,154,150,155,],1);
+a([59,151,152,153,154,150,151,152,153,154,150,155,],1);
+a([69,151,152,153,154,150,151,152,156,154,157,158,159,160,],1);
+a([76,153,154,150,155,],2);
+a([79,151,152,156,154,157,158,159,160,],1);
+a([83,161,],1);
+a([81,153,154,150,155,],5);
+a([84,151,],1);
+a([85,152,156,],1);
+a([87,154,161,],2);
+a([86,153,154,150,],1);
+a([89,155,],11);
+a([89,151,152,156,154,162,163,164,165,166,167,168,],1);
+a([93,157,158,159,160,],1);
+a([93,161,],2);
+a([91,153,154,150,],1);
+a([94,155,],19);
+a([95,169,],1);
+a([95,170,],1);
+a([95,171,],1);
+a([94,151,172,173,],1);
+a([95,174,175,176,177,177,],2);
+a([100,167,168,178,],1);
+a([95,152,156,],1);
+a([97,154,157,158,159,160,],4);
+a([98,161,],5);
+a([98,179,180,181,],1);
+a([97,161,154,],1);
+a([96,153,154,150,],1);
+a([99,155,],30);
+a([99,151,174,175,176,177,177,],1);
+a([105,167,],2);
+a([106,168,182,],2);
+a([100,152,156,],1);
+a([102,154,162,163,183,184,184,167,168,182,185,],2);
+a([103,157,158,159,160,],9);
+a([104,186,],1);
+a([103,161,],7);
+a([103,187,188,189,190,191,192,193,194,195,196,197,198,199,],1);
+a([101,153,154,150,155,],66);
+a([105,200,],1);
+a([105,171,],1);
+a([106,170,],2);
+a([104,151,],1);
+a([105,174,175,176,177,],1);
+a([109,177,],4);
+a([110,167,],1);
+a([111,168,182,],1);
+a([112,178,],1);
+a([110,201,],7);
+a([105,152,],2);
+a([106,156,],1);
+a([107,154,],1);
+a([108,162,163,164,165,166,167,168,],2);
+a([109,187,],2);
+a([110,188,189,],1);
+a([108,157,158,159,160,],14);
+a([108,161,],6);
+a([108,187,188,189,],1);
+a([108,202,],1);
+a([107,153,203,204,205,206,],1);
+a([106,153,],1);
+a([107,154,],2);
+a([108,150,],2);
+a([109,155,],139);
+a([110,65,],1);
+a([110,207,],1);
+a([110,171,],1);
+a([111,170,],2);
+a([109,151,174,],1);
+a([111,175,176,177,177,],10);
+a([115,14,],1);
+a([115,208,],1);
+a([116,209,],1);
+a([115,167,],5);
+a([116,168,182,],3);
+a([118,185,],3);
+a([117,178,],5);
+a([115,201,],6);
+a([110,152,],4);
+a([111,156,],5);
+a([112,154,],2);
+a([113,210,],1);
+a([114,187,188,189,45,46,47,48,49,50,51,56,57,58,59,],1);
+a([113,162,163,164,165,166,167,168,],2);
+a([120,182,185,],1);
+a([115,183,184,184,167,168,],1);
+a([120,182,185,],3);
+a([114,187,],1);
+a([115,45,46,47,],1);
+a([113,157,158,159,160,],25);
+a([113,161,],25);
+a([114,211,211,],1);
+a([116,212,],1);
+a([113,187,188,189,213,],1);
+a([113,202,],4);
+a([113,179,180,181,],1);
+a([112,153,203,204,205,206,],1);
+a([112,161,],1);
+a([112,202,],3);
+a([111,153,],2);
+a([112,154,],3);
+a([113,150,],6);
+a([114,155,],199);
+a([115,154,],1);
+a([115,207,],2);
+a([115,171,],1);
+a([116,170,],1);
+a([114,151,],1);
+a([115,174,],1);
+a([116,175,176,],1);
+a([118,177,177,],10);
+a([120,15,],2);
+a([120,167,],4);
+a([121,168,182,],5);
+a([123,185,],6);
+a([122,178,],6);
+a([120,201,],7);
+a([115,152,],3);
+a([116,156,],6);
+a([117,154,],8);
+a([118,210,187,],1);
+a([120,45,46,47,],1);
+a([123,214,],1);
+a([120,188,189,190,191,192,215,],1);
+a([122,45,46,47,48,49,50,51,56,57,58,],1);
+a([118,162,163,164,165,166,167,168,],6);
+a([125,182,185,],1);
+a([120,183,184,184,167,168,],2);
+a([125,182,185,],1);
+a([119,187,],2);
+a([120,188,189,],3);
+a([118,157,158,159,160,],59);
+a([122,216,217,192,193,194,195,196,197,218,],1);
+a([122,219,],2);
+a([118,161,],28);
+a([119,211,211,],1);
+a([118,187,188,189,213,],1);
+a([118,202,],1);
+a([118,179,180,181,],1);
+a([117,153,162,163,164,165,166,167,168,],1);
+a([118,203,],2);
+a([119,204,205,206,],2);
+a([117,161,],1);
+a([118,154,],1);
+a([117,202,],2);
+a([116,153,],1);
+a([117,154,],6);
+a([118,150,],8);
+a([119,155,],306);
+a([120,170,],1);
+a([120,171,],2);
+a([121,170,],4);
+a([119,151,],1);
+a([120,45,46,47,48,49,50,51,52,53,54,84,],1);
+a([120,220,],1);
+a([120,174,175,176,],3);
+a([123,177,177,],25);
+a([125,45,46,47,48,49,50,51,221,222,223,224,],1);
+a([125,208,],1);
+a([125,167,],8);
+a([126,168,],5);
+a([127,182,],5);
+a([128,185,],7);
+a([127,178,],8);
+a([125,201,],16);
+a([121,225,226,227,],2);
+a([120,152,],3);
+a([121,156,],9);
+a([122,154,],9);
+a([123,210,187,],2);
+a([123,162,163,164,165,166,167,168,],13);
+a([130,182,185,],2);
+a([125,228,],1);
+a([125,183,184,184,167,168,],3);
+a([130,182,185,],2);
+a([124,187,],5);
+a([125,188,189,],5);
+a([127,45,46,229,],1);
+a([127,213,],2);
+a([123,157,158,159,160,],61);
+a([127,219,],1);
+a([123,161,],50);
+a([124,211,],2);
+a([125,211,],1);
+a([123,187,],1);
+a([124,188,189,190,191,192,193,194,195,],1);
+a([126,213,],1);
+a([123,202,],3);
+a([123,179,180,],1);
+a([125,181,],3);
+a([122,153,],6);
+a([123,162,163,164,165,],1);
+a([127,166,167,168,182,185,],2);
+a([125,183,184,184,167,168,],4);
+a([124,187,45,46,47,48,49,50,51,52,53,54,84,],1);
+a([125,188,189,],3);
+a([127,213,],1);
+a([123,203,],1);
+a([124,204,205,206,],3);
+a([122,161,154,],1);
+a([122,202,],1);
+a([121,153,],1);
+a([122,45,46,47,],1);
+a([122,154,],6);
+a([123,150,],10);
+a([124,45,46,47,48,49,],1);
+a([124,155,],340);
+a([125,65,],2);
+a([125,200,],1);
+a([125,171,],1);
+a([126,170,],6);
+a([124,151,],2);
+a([125,172,220,12,],1);
+a([125,174,175,176,],4);
+a([128,177,177,],25);
+a([130,208,45,46,47,],1);
+a([131,209,],1);
+a([130,167,],5);
+a([131,168,],6);
+a([132,182,],5);
+a([133,185,],12);
+a([132,178,],4);
+a([130,201,],7);
+a([126,225,226,227,],1);
+a([125,152,],5);
+a([126,172,173,230,],1);
+a([126,156,],6);
+a([127,154,],5);
+a([128,210,],1);
+a([129,187,],3);
+a([130,188,189,],1);
+a([132,45,46,47,],1);
+a([128,162,163,164,165,166,167,168,],16);
+a([130,183,184,184,167,168,],1);
+a([135,182,185,],4);
+a([129,187,],3);
+a([130,188,189,],1);
+a([132,213,],1);
+a([128,157,158,159,160,],63);
+a([128,161,],39);
+a([129,211,],1);
+a([130,211,],3);
+a([128,187,188,189,],2);
+a([131,45,46,47,],1);
+a([128,202,],7);
+a([128,179,180,181,],3);
+a([127,153,],5);
+a([128,162,163,164,165,166,167,168,],3);
+a([135,182,185,],2);
+a([130,228,],1);
+a([130,183,184,184,167,168,],2);
+a([129,187,45,46,47,],1);
+a([130,188,189,],4);
+a([128,161,],2);
+a([129,211,],1);
+a([130,211,212,],1);
+a([128,203,],1);
+a([129,204,205,206,],4);
+a([127,161,],2);
+a([128,211,211,],1);
+a([127,202,],5);
+a([126,153,],3);
+a([127,154,],5);
+a([128,150,],8);
+a([129,155,],221);
+a([130,154,],1);
+a([130,169,],1);
+a([130,207,],1);
+a([130,170,],2);
+a([130,171,],1);
+a([131,170,],1);
+a([129,151,],2);
+a([130,172,13,],1);
+a([130,174,175,176,],1);
+a([133,177,177,],11);
+a([135,15,],1);
+a([135,45,46,47,49,],1);
+a([135,208,],1);
+a([135,167,],4);
+a([136,168,],4);
+a([137,182,],4);
+a([138,185,],4);
+a([137,178,],5);
+a([135,201,],6);
+a([131,225,226,],1);
+a([133,227,],1);
+a([130,152,],3);
+a([131,156,],7);
+a([132,154,],5);
+a([133,210,],1);
+a([134,187,],3);
+a([135,188,189,],4);
+a([133,162,163,164,165,166,167,168,],4);
+a([140,216,217,192,193,],1);
+a([140,182,185,],1);
+a([135,183,184,184,167,168,182,185,],2);
+a([134,187,],3);
+a([135,188,189,],2);
+a([137,45,46,47,48,49,50,231,],1);
+a([143,51,232,233,234,235,],1);
+a([133,157,158,159,160,],56);
+a([137,216,217,236,],1);
+a([137,219,],1);
+a([133,161,],36);
+a([134,211,],1);
+a([135,211,212,],1);
+a([133,187,188,189,45,46,47,48,49,50,51,56,57,58,59,60,61,237,84,],1);
+a([133,202,],6);
+a([133,179,180,],1);
+a([135,181,],1);
+a([132,153,],5);
+a([133,162,163,164,165,],1);
+a([137,166,167,168,],2);
+a([140,182,185,],1);
+a([135,183,184,184,167,168,],2);
+a([134,187,188,189,],1);
+a([133,161,],2);
+a([133,202,],1);
+a([133,203,204,205,206,],6);
+a([132,202,],8);
+a([131,153,],3);
+a([132,154,],2);
+a([133,150,],4);
+a([134,155,],130);
+a([135,169,],1);
+a([135,207,],1);
+a([135,171,],1);
+a([136,170,],2);
+a([134,151,],1);
+a([135,174,175,176,],5);
+a([138,177,],1);
+a([139,177,],5);
+a([140,208,],3);
+a([141,45,46,47,48,49,50,51,56,57,58,59,238,],2);
+a([140,167,],4);
+a([141,168,],1);
+a([142,182,],1);
+a([143,185,],1);
+a([142,178,],4);
+a([140,201,],3);
+a([136,225,226,239,],1);
+a([138,227,],1);
+a([135,152,],3);
+a([136,156,],7);
+a([137,172,173,240,],1);
+a([137,154,],4);
+a([138,210,],1);
+a([139,187,188,189,45,46,47,48,49,],1);
+a([138,162,163,164,165,166,167,168,],3);
+a([145,182,185,],1);
+a([140,183,184,184,167,168,],1);
+a([139,187,],1);
+a([140,188,189,],1);
+a([138,157,158,159,160,],33);
+a([142,219,],1);
+a([138,161,],23);
+a([138,187,188,189,45,46,47,48,49,50,51,241,242,],1);
+a([148,56,57,58,59,61,],1);
+a([138,202,],5);
+a([138,179,180,],3);
+a([140,181,],2);
+a([138,243,],2);
+a([137,153,45,46,47,],1);
+a([138,162,163,164,165,],1);
+a([142,166,167,168,],3);
+a([145,182,185,],2);
+a([139,187,],1);
+a([140,188,189,],1);
+a([138,161,],4);
+a([138,203,],1);
+a([139,204,205,206,],2);
+a([137,161,],1);
+a([138,154,],1);
+a([137,187,188,189,45,46,47,48,49,50,51,241,242,],1);
+a([137,202,],4);
+a([136,153,154,],1);
+a([138,150,],4);
+a([139,155,],71);
+a([140,169,],1);
+a([140,171,],1);
+a([139,151,],2);
+a([140,172,],1);
+a([141,220,13,],1);
+a([141,173,244,],1);
+a([140,174,],1);
+a([141,175,176,177,177,],5);
+a([145,15,],1);
+a([145,208,216,217,192,193,245,],1);
+a([146,209,],1);
+a([145,167,168,],1);
+a([147,182,],1);
+a([147,178,],2);
+a([145,201,],2);
+a([141,225,226,227,],1);
+a([140,152,],2);
+a([141,156,],2);
+a([142,172,173,],1);
+a([144,230,],1);
+a([144,240,],1);
+a([142,154,],1);
+a([143,210,187,],2);
+a([145,45,46,47,],1);
+a([143,162,163,164,165,166,167,168,],1);
+a([144,187,],1);
+a([145,188,189,],1);
+a([147,45,46,47,],1);
+a([143,157,158,159,160,],15);
+a([143,161,],14);
+a([144,211,211,],1);
+a([143,187,],1);
+a([144,188,189,],3);
+a([142,153,],2);
+a([143,162,187,],1);
+a([145,188,189,],1);
+a([147,45,46,47,48,49,50,51,101,],1);
+a([154,56,57,58,59,],1);
+a([143,246,],2);
+a([143,203,],2);
+a([144,204,205,206,],1);
+a([142,161,],1);
+a([141,153,],1);
+a([142,154,150,],2);
+a([144,155,],21);
+a([145,171,170,],1);
+a([144,151,172,173,],1);
+a([145,174,175,176,177,177,],2);
+a([150,208,45,46,47,48,49,50,51,57,],1);
+a([150,167,],1);
+a([151,168,],1);
+a([152,182,185,],1);
+a([152,178,],2);
+a([150,201,],2);
+a([146,225,226,45,46,47,48,49,50,51,52,53,54,84,],1);
+a([145,152,156,],1);
+a([147,154,],3);
+a([148,210,],1);
+a([148,162,163,183,],1);
+a([148,157,],1);
+a([149,158,159,160,],7);
+a([148,161,],7);
+a([148,187,],1);
+a([149,188,189,45,46,47,48,49,50,51,101,],1);
+a([147,153,],1);
+a([148,162,163,164,165,166,167,168,],1);
+a([155,182,185,],1);
+a([149,187,188,189,],1);
+a([147,161,],2);
+a([147,187,188,189,],1);
+a([146,153,154,],1);
+a([148,150,],1);
+a([149,155,],2);
+a([149,151,],1);
+a([150,172,220,12,],1);
+a([150,174,225,],1);
+a([152,226,239,],1);
+a([150,152,],1);
+a([151,172,173,240,247,],1);
+a([151,156,],1);
+a([152,154,162,163,164,165,166,167,168,182,185,],1);
+a([153,157,158,159,160,],1);
+a([154,248,249,],1);
+a([154,186,],1);
+a([153,161,],1);
+a([154,211,211,212,],1);
+a([153,187,188,189,45,46,47,],1);
+a([152,153,162,163,228,],1);
+a([153,161,],1);
+a([152,161,],1);
+a([152,187,188,189,216,217,192,],1);
+a([151,153,154,150,151,152,156,172,173,240,],1);
+a([157,154,210,187,],1);
+a([160,45,46,47,48,],1);
+a([157,153,246,],1);
+a([156,153,154,150,151,174,225,45,46,47,48,49,],1);
+a([160,152,156,154,157,158,159,160,],1);
+a([161,153,154,150,151,152,156,153,],1);
+a([159,65,250,251,154,157,158,],1);
+a([165,159,],1);
+a([155,65,252,253,254,255,],1);
+a([154,124,125,132,],1);
+a([154,65,],1);
+a([155,250,251,154,161,211,211,256,257,258,259,260,],1);
+a([154,187,188,189,45,46,47,261,262,263,],1);
+a([151,264,131,132,265,],1);
+a([155,200,],1);
+a([156,266,267,],1);
+a([151,124,125,132,265,],1);
+a([150,65,],1);
+a([151,252,253,254,255,268,269,],1);
+a([157,174,175,176,],1);
+a([160,177,177,167,168,182,185,],1);
+a([158,225,226,],1);
+a([157,161,],1);
+a([156,270,271,272,127,128,273,],1);
+a([162,131,132,],1);
+a([164,265,246,],1);
+a([154,131,132,127,128,],1);
+a([158,273,134,216,217,192,193,194,195,274,],1);
+a([160,275,276,277,13,],1);
+a([159,278,279,],1);
+a([159,131,132,265,246,],1);
+a([152,280,],1);
+a([149,124,125,],1);
+a([149,65,],1);
+a([150,250,251,154,162,187,],1);
+a([153,157,158,159,160,],2);
+a([153,161,],1);
+a([153,187,45,46,47,],1);
+a([152,281,282,283,283,],1);
+a([152,161,],2);
+a([151,212,],1);
+a([150,202,],2);
+a([149,161,],1);
+a([149,187,],1);
+a([150,188,189,213,],1);
+a([148,157,158,159,160,],1);
+a([148,202,],1);
+a([147,203,],1);
+a([146,264,131,132,265,],5);
+a([150,200,],1);
+a([151,266,267,],3);
+a([153,45,46,47,],1);
+a([146,124,125,],1);
+a([148,132,265,],1);
+a([150,200,],1);
+a([151,266,267,],2);
+a([152,170,],1);
+a([150,246,],1);
+a([146,278,279,],1);
+a([148,132,265,200,266,267,],1);
+a([146,161,],1);
+a([145,134,45,46,47,48,49,50,51,221,],1);
+a([146,284,],1);
+a([145,65,],3);
+a([146,252,253,254,255,],1);
+a([150,268,],1);
+a([151,269,174,175,176,177,177,167,],1);
+a([157,201,],1);
+a([153,225,226,],1);
+a([152,161,],4);
+a([153,211,211,],1);
+a([151,270,],1);
+a([152,271,],1);
+a([153,272,127,],1);
+a([155,128,],1);
+a([156,273,131,132,265,],1);
+a([154,246,],2);
+a([149,131,],1);
+a([150,132,127,],5);
+a([152,128,],1);
+a([153,273,285,],1);
+a([155,286,287,],1);
+a([154,124,125,],1);
+a([156,207,],1);
+a([154,278,279,],2);
+a([156,288,],2);
+a([154,131,132,],1);
+a([156,265,],3);
+a([157,200,],2);
+a([158,266,267,],1);
+a([159,289,],1);
+a([157,246,],2);
+a([147,280,],1);
+a([146,250,251,281,282,283,283,],3);
+a([146,202,],4);
+a([144,162,163,164,165,166,167,168,],2);
+a([145,187,188,189,],1);
+a([148,45,46,47,48,49,50,51,52,53,54,84,],1);
+a([144,124,125,],4);
+a([146,132,265,],2);
+a([148,200,266,267,],1);
+a([148,246,],1);
+a([144,65,],1);
+a([145,250,251,],2);
+a([147,154,],1);
+a([148,162,163,183,184,184,167,168,182,185,],1);
+a([149,187,],1);
+a([148,157,158,159,160,],5);
+a([147,281,],1);
+a([148,282,283,283,],4);
+a([151,45,46,47,48,],1);
+a([147,161,],2);
+a([147,187,188,189,],1);
+a([150,45,46,47,],1);
+a([150,213,],1);
+a([145,202,],1);
+a([144,290,291,169,],4);
+a([147,184,184,],1);
+a([149,167,],1);
+a([144,171,],1);
+a([145,170,],3);
+a([144,187,],1);
+a([145,45,46,47,],1);
+a([145,188,189,45,46,47,48,49,50,51,52,53,54,84,],1);
+a([144,202,],1);
+a([144,292,],1);
+a([143,162,163,164,165,166,167,168,],1);
+a([143,157,158,159,160,293,],1);
+a([143,161,211,],1);
+a([143,187,188,189,45,46,47,48,49,50,51,56,57,58,59,60,61,237,84,],1);
+a([143,293,],1);
+a([143,179,180,181,],1);
+a([141,264,131,],1);
+a([143,132,265,],3);
+a([145,200,],1);
+a([146,266,267,],1);
+a([148,45,46,47,48,49,50,56,],1);
+a([148,212,],1);
+a([141,124,125,],2);
+a([143,207,],3);
+a([143,132,],3);
+a([144,265,],2);
+a([145,200,],2);
+a([146,266,267,],5);
+a([145,246,],3);
+a([141,278,279,],1);
+a([143,288,294,],1);
+a([143,132,265,],2);
+a([145,200,266,267,],1);
+a([140,65,],4);
+a([141,252,],2);
+a([142,253,254,255,],2);
+a([145,268,269,174,175,176,177,177,],3);
+a([152,14,],2);
+a([152,45,46,47,48,49,50,51,56,57,58,59,295,],1);
+a([152,208,45,46,47,48,49,50,51,56,],1);
+a([152,167,168,],1);
+a([152,201,],1);
+a([148,225,],3);
+a([149,226,],4);
+a([150,239,],1);
+a([147,161,],10);
+a([148,211,211,],2);
+a([146,296,297,],1);
+a([146,270,271,],1);
+a([148,272,],2);
+a([149,127,],10);
+a([150,128,],1);
+a([151,273,],1);
+a([152,131,132,],1);
+a([154,265,],1);
+a([155,298,],2);
+a([155,246,],1);
+a([149,246,],3);
+a([146,131,],1);
+a([145,280,],2);
+a([144,131,132,127,],5);
+a([147,128,],2);
+a([148,273,],2);
+a([149,285,286,287,299,300,],1);
+a([149,124,125,],1);
+a([151,207,],4);
+a([149,134,],1);
+a([150,275,],1);
+a([149,278,279,],4);
+a([151,288,],1);
+a([152,294,],2);
+a([153,301,],1);
+a([151,132,],1);
+a([149,131,132,],1);
+a([151,265,],5);
+a([152,200,],5);
+a([153,266,267,],5);
+a([155,45,46,47,48,49,50,51,56,57,58,59,60,61,237,84,],1);
+a([152,246,],4);
+a([144,202,],3);
+a([142,280,],2);
+a([141,250,251,281,282,283,283,],4);
+a([141,202,],10);
+a([139,162,163,164,165,166,167,168,],6);
+a([141,183,184,184,167,168,],1);
+a([139,124,125,],19);
+a([141,207,],1);
+a([141,132,],1);
+a([142,265,],11);
+a([143,200,],2);
+a([144,266,267,],1);
+a([143,246,],7);
+a([141,265,],1);
+a([139,65,],6);
+a([140,250,],1);
+a([141,251,154,],1);
+a([143,210,187,188,189,],1);
+a([147,45,46,47,261,262,263,],1);
+a([143,162,163,164,165,166,167,168,],1);
+a([150,182,185,],1);
+a([144,187,],3);
+a([145,188,189,],1);
+a([147,45,46,47,48,49,50,51,56,57,58,59,238,],1);
+a([158,60,61,237,84,],1);
+a([143,157,158,159,],1);
+a([146,160,],13);
+a([147,302,],1);
+a([148,45,46,47,48,49,50,51,232,233,],1);
+a([146,303,],1);
+a([143,187,188,189,45,46,47,48,49,50,51,232,304,],1);
+a([143,202,],1);
+a([142,281,282,283,283,],6);
+a([146,45,46,47,],1);
+a([146,213,],1);
+a([142,161,],12);
+a([143,211,211,],4);
+a([145,212,],1);
+a([142,187,],1);
+a([143,188,189,213,],1);
+a([142,202,],3);
+a([140,202,],21);
+a([139,290,291,],1);
+a([141,169,],21);
+a([142,184,184,],1);
+a([144,167,],3);
+a([139,305,306,],1);
+a([139,187,],4);
+a([140,45,46,47,48,49,50,51,52,53,],1);
+a([140,188,189,],3);
+a([139,202,],2);
+a([139,243,],1);
+a([138,162,163,164,165,166,167,168,64,],1);
+a([138,157,158,159,160,],4);
+a([138,64,],1);
+a([138,202,],2);
+a([138,293,],1);
+a([136,264,131,],5);
+a([138,132,265,],14);
+a([140,177,],1);
+a([140,200,],5);
+a([141,266,267,],4);
+a([136,124,125,],1);
+a([138,207,],1);
+a([138,132,],5);
+a([139,265,],1);
+a([140,200,],2);
+a([141,266,267,],5);
+a([140,246,],4);
+a([136,278,279,],6);
+a([138,288,294,45,46,47,],1);
+a([140,267,],1);
+a([138,132,265,],2);
+a([140,200,],1);
+a([141,266,267,],4);
+a([136,202,],1);
+a([135,134,],2);
+a([136,275,],1);
+a([135,65,],7);
+a([136,252,],2);
+a([137,253,254,255,],1);
+a([140,268,],1);
+a([141,269,174,175,176,],2);
+a([145,177,177,],6);
+a([147,14,],1);
+a([147,208,],2);
+a([147,167,],7);
+a([148,168,],3);
+a([149,182,],1);
+a([150,185,],6);
+a([149,178,],1);
+a([147,201,],9);
+a([143,225,226,],5);
+a([145,239,],7);
+a([142,161,],20);
+a([143,211,],1);
+a([144,211,],1);
+a([141,124,125,],3);
+a([141,270,271,272,307,],2);
+a([144,127,],17);
+a([145,128,],6);
+a([146,273,],3);
+a([147,131,],1);
+a([148,132,265,],4);
+a([150,298,],6);
+a([150,246,],4);
+a([144,246,],7);
+a([141,297,],1);
+a([140,280,],3);
+a([139,131,132,127,],17);
+a([142,128,],8);
+a([143,273,],4);
+a([144,285,286,287,],3);
+a([147,299,300,],1);
+a([144,124,125,],9);
+a([146,207,],7);
+a([144,134,],1);
+a([144,278,279,],3);
+a([146,288,],6);
+a([147,294,],3);
+a([148,301,],2);
+a([144,131,],1);
+a([145,132,],2);
+a([146,265,],13);
+a([147,200,],7);
+a([148,266,267,],15);
+a([150,45,46,47,48,49,],1);
+a([150,212,],2);
+a([149,170,],1);
+a([147,246,],15);
+a([144,308,187,],1);
+a([146,188,189,],4);
+a([148,45,46,47,48,49,50,51,52,53,54,84,],1);
+a([148,213,],1);
+a([142,132,],2);
+a([137,280,],5);
+a([136,250,251,281,282,283,283,],8);
+a([142,45,46,47,48,49,50,51,241,242,],1);
+a([136,202,],29);
+a([135,202,],1);
+a([134,162,163,],1);
+a([136,164,165,166,167,168,],19);
+a([141,182,185,],1);
+a([136,183,184,184,167,168,],2);
+a([135,187,188,189,],1);
+a([134,124,125,],39);
+a([136,207,],2);
+a([136,132,],6);
+a([137,265,],22);
+a([138,200,],1);
+a([139,266,267,],5);
+a([141,212,],1);
+a([138,246,],4);
+a([134,65,],3);
+a([135,250,],6);
+a([136,251,],3);
+a([137,154,],4);
+a([138,210,187,],2);
+a([140,188,189,],1);
+a([138,162,],1);
+a([139,163,164,165,166,167,168,],3);
+a([145,182,185,],4);
+a([140,228,],2);
+a([140,183,184,184,167,168,],1);
+a([145,182,185,],2);
+a([139,187,],2);
+a([140,45,46,47,48,49,50,51,56,57,58,59,238,],1);
+a([140,188,189,],3);
+a([138,157,158,],1);
+a([140,159,160,],22);
+a([142,219,],1);
+a([138,161,],3);
+a([138,187,188,189,],1);
+a([138,179,180,181,],2);
+a([137,281,282,283,283,],7);
+a([141,213,],2);
+a([141,309,],1);
+a([137,161,],31);
+a([138,211,],1);
+a([139,211,],3);
+a([137,187,],1);
+a([137,202,],1);
+a([136,212,],1);
+a([135,202,],24);
+a([134,290,291,169,],27);
+a([137,184,184,167,],2);
+a([135,310,],3);
+a([134,171,],4);
+a([135,170,],8);
+a([134,305,306,],1);
+a([134,161,211,],1);
+a([134,187,],9);
+a([135,45,46,47,],1);
+a([138,48,49,50,51,311,312,],1);
+a([142,56,57,58,59,295,],1);
+a([135,188,189,],1);
+a([137,190,191,192,313,],1);
+a([137,45,46,47,],1);
+a([140,48,49,50,51,232,304,],1);
+a([137,213,],2);
+a([134,243,],1);
+a([134,203,],1);
+a([133,162,163,164,165,166,167,168,45,46,47,48,49,50,51,56,57,58,59,238,],1);
+a([133,157,158,159,160,],3);
+a([133,161,],1);
+a([132,203,],1);
+a([133,256,257,314,315,315,316,317,],1);
+a([133,204,205,206,],5);
+a([131,264,318,],1);
+a([132,131,],3);
+a([133,132,265,],22);
+a([135,200,],2);
+a([136,266,267,],10);
+a([131,124,125,207,],3);
+a([133,132,],8);
+a([134,265,],1);
+a([135,200,],2);
+a([136,266,267,],8);
+a([135,246,],14);
+a([131,278,279,],13);
+a([133,288,294,],2);
+a([135,267,],1);
+a([133,132,265,],9);
+a([135,200,266,267,],5);
+a([138,45,46,47,],1);
+a([131,202,],2);
+a([130,134,],1);
+a([131,45,46,47,],1);
+a([131,284,45,46,47,],1);
+a([132,300,],1);
+a([130,65,],13);
+a([131,252,],6);
+a([132,253,254,],2);
+a([134,255,],3);
+a([135,268,],2);
+a([136,269,174,175,176,],4);
+a([140,177,177,],11);
+a([142,208,],1);
+a([143,209,],2);
+a([142,167,],5);
+a([143,168,],6);
+a([144,182,185,],6);
+a([144,178,],2);
+a([142,201,],8);
+a([138,225,45,46,47,],1);
+a([139,226,],9);
+a([140,239,],14);
+a([138,319,],1);
+a([137,161,],36);
+a([138,211,211,],1);
+a([140,212,],1);
+a([136,124,125,],2);
+a([138,320,],2);
+a([136,270,271,272,],1);
+a([139,307,],4);
+a([139,127,],31);
+a([140,128,],3);
+a([141,273,],3);
+a([142,131,132,],1);
+a([144,265,],1);
+a([145,298,],2);
+a([145,246,],5);
+a([139,246,],9);
+a([136,131,],1);
+a([135,280,],5);
+a([134,131,132,],1);
+a([136,127,],29);
+a([137,128,],16);
+a([138,273,],15);
+a([139,285,286,287,],1);
+a([142,299,300,],3);
+a([144,45,46,47,48,49,50,51,52,53,54,84,],1);
+a([139,124,125,],6);
+a([141,207,],7);
+a([139,134,],1);
+a([140,284,300,],2);
+a([139,278,279,],2);
+a([141,288,],8);
+a([142,294,],9);
+a([143,267,],1);
+a([141,132,],1);
+a([139,131,],1);
+a([140,132,],1);
+a([141,265,],29);
+a([142,200,],8);
+a([143,266,267,],10);
+a([145,212,],1);
+a([144,170,],1);
+a([142,246,],23);
+a([139,308,187,],1);
+a([141,190,191,],1);
+a([141,188,189,],1);
+a([137,132,],1);
+a([134,202,],3);
+a([134,243,],1);
+a([132,280,],13);
+a([131,250,251,281,282,283,283,],21);
+a([133,161,],2);
+a([131,202,],41);
+a([130,202,],1);
+a([129,162,163,164,165,166,167,168,],24);
+a([136,45,46,47,48,49,50,51,321,],1);
+a([136,187,],1);
+a([136,182,185,],2);
+a([131,183,184,184,],1);
+a([134,167,168,],1);
+a([136,182,185,],1);
+a([130,187,188,189,],1);
+a([129,124,125,],64);
+a([131,207,],6);
+a([131,132,],11);
+a([132,265,],26);
+a([133,200,],2);
+a([134,266,267,],4);
+a([136,45,46,47,48,49,50,51,56,57,58,59,238,],1);
+a([136,212,],1);
+a([135,170,],2);
+a([133,246,],12);
+a([131,265,],1);
+a([129,65,],8);
+a([130,252,253,254,255,268,297,],4);
+a([130,250,],1);
+a([131,251,],5);
+a([132,154,],5);
+a([133,210,],1);
+a([133,162,163,164,165,166,167,168,],11);
+a([140,216,217,192,193,194,195,196,197,322,],1);
+a([140,182,185,],3);
+a([135,228,],1);
+a([135,183,184,184,167,168,],1);
+a([140,182,185,],3);
+a([134,187,],4);
+a([135,188,189,],2);
+a([133,157,158,159,160,],53);
+a([137,302,],1);
+a([133,161,],5);
+a([134,211,211,212,],2);
+a([133,187,188,189,],1);
+a([133,179,180,181,],5);
+a([132,281,],1);
+a([133,282,283,283,],24);
+a([136,216,217,192,193,],1);
+a([136,213,],4);
+a([132,161,],52);
+a([133,211,],1);
+a([134,211,],4);
+a([132,187,188,189,],2);
+a([132,202,],3);
+a([131,212,],2);
+a([130,202,],38);
+a([129,290,291,],1);
+a([131,169,],56);
+a([132,184,184,],4);
+a([134,167,],5);
+a([130,310,],3);
+a([129,171,],8);
+a([130,170,],9);
+a([129,187,],14);
+a([130,45,46,47,],1);
+a([130,188,189,],6);
+a([132,45,46,47,],3);
+a([132,213,],2);
+a([128,162,163,164,165,166,167,168,],1);
+a([135,64,],1);
+a([128,157,158,159,160,],7);
+a([128,64,],1);
+a([129,323,160,302,],1);
+a([128,161,],2);
+a([129,211,211,],1);
+a([128,293,],1);
+a([128,179,180,181,],3);
+a([127,161,],1);
+a([128,211,],1);
+a([127,203,204,205,206,],3);
+a([126,264,131,],11);
+a([128,132,265,],37);
+a([130,200,],7);
+a([131,266,267,],10);
+a([133,45,46,47,48,49,50,51,56,324,],1);
+a([126,124,125,],5);
+a([128,207,],7);
+a([128,132,],10);
+a([129,265,],5);
+a([130,200,],5);
+a([131,266,267,],10);
+a([133,45,46,47,48,49,],1);
+a([130,246,],16);
+a([126,278,279,],26);
+a([128,288,294,],1);
+a([130,267,],1);
+a([128,132,],1);
+a([129,265,],14);
+a([130,200,],5);
+a([131,266,267,],3);
+a([126,161,],1);
+a([126,202,],4);
+a([125,134,],1);
+a([126,45,46,47,48,49,50,51,232,233,],1);
+a([125,65,],14);
+a([126,252,],1);
+a([127,253,254,],5);
+a([129,255,],3);
+a([130,268,],2);
+a([131,269,174,175,176,],3);
+a([135,177,177,],11);
+a([137,15,],1);
+a([137,167,],9);
+a([138,168,],7);
+a([139,182,],2);
+a([140,185,],7);
+a([139,178,],3);
+a([137,201,],6);
+a([133,225,],2);
+a([134,226,],13);
+a([135,239,],15);
+a([132,161,],34);
+a([133,211,211,],5);
+a([135,212,],1);
+a([136,325,],3);
+a([131,124,125,],1);
+a([133,320,],7);
+a([131,270,271,],5);
+a([133,272,],6);
+a([134,127,],45);
+a([135,128,],6);
+a([136,273,],8);
+a([137,131,132,],1);
+a([139,265,],6);
+a([140,298,],5);
+a([140,246,],8);
+a([134,246,],18);
+a([131,131,],1);
+a([132,132,],1);
+a([130,280,],2);
+a([130,202,],1);
+a([129,131,],1);
+a([130,132,],1);
+a([131,127,],30);
+a([132,128,],18);
+a([133,273,],25);
+a([134,124,125,],8);
+a([136,207,],7);
+a([134,134,],5);
+a([135,275,],2);
+a([135,284,300,],1);
+a([134,278,279,],5);
+a([136,288,],18);
+a([137,294,],16);
+a([138,301,],1);
+a([136,132,],2);
+a([134,131,132,],4);
+a([136,265,],34);
+a([137,200,],14);
+a([138,266,267,],15);
+a([140,212,],3);
+a([139,170,],1);
+a([137,246,],27);
+a([134,308,187,],2);
+a([136,188,189,],1);
+a([134,207,],1);
+a([129,202,],1);
+a([129,243,],2);
+a([127,280,],14);
+a([126,250,251,281,282,283,283,],25);
+a([126,202,],56);
+a([125,202,],2);
+a([124,162,163,164,165,166,167,168,],26);
+a([131,182,185,],1);
+a([126,183,184,184,],2);
+a([129,167,168,],3);
+a([125,187,188,189,45,46,47,],1);
+a([124,124,125,],57);
+a([126,207,],3);
+a([126,132,],15);
+a([127,265,],46);
+a([128,200,],6);
+a([129,266,267,],4);
+a([131,45,46,47,48,49,50,51,56,57,58,59,60,61,237,84,],1);
+a([128,246,],20);
+a([124,65,],11);
+a([125,252,253,254,255,268,297,],5);
+a([125,250,],18);
+a([126,251,],3);
+a([127,154,],9);
+a([128,210,],3);
+a([129,187,],2);
+a([128,162,163,164,165,166,167,168,],11);
+a([135,182,185,],4);
+a([130,183,184,184,167,168,],2);
+a([135,182,185,],4);
+a([129,187,],5);
+a([130,188,189,],3);
+a([132,213,],1);
+a([128,157,158,159,160,],72);
+a([132,216,217,192,193,194,195,196,197,322,],1);
+a([132,302,],2);
+a([133,45,46,47,48,49,50,51,232,304,],1);
+a([128,161,],4);
+a([128,187,188,189,45,46,47,],1);
+a([131,213,],1);
+a([128,202,],5);
+a([128,179,180,181,],1);
+a([128,326,],1);
+a([127,281,282,283,283,],22);
+a([131,45,46,47,],1);
+a([131,213,],1);
+a([127,161,],45);
+a([128,211,],1);
+a([129,211,],9);
+a([130,212,325,],1);
+a([127,187,188,189,],3);
+a([130,45,46,47,327,],1);
+a([133,48,49,50,51,328,231,],1);
+a([130,213,],1);
+a([127,202,],7);
+a([126,212,],2);
+a([125,202,],55);
+a([124,290,],1);
+a([125,291,],1);
+a([126,329,],3);
+a([126,169,],54);
+a([127,184,184,],1);
+a([129,167,],13);
+a([125,310,],8);
+a([124,171,],4);
+a([125,170,],6);
+a([124,161,211,211,],1);
+a([124,187,],12);
+a([125,188,189,],7);
+a([127,216,217,192,193,194,195,196,197,330,331,],1);
+a([127,213,],2);
+a([124,243,],1);
+a([123,157,158,159,160,],9);
+a([127,150,],1);
+a([123,64,323,],1);
+a([125,160,],1);
+a([123,187,188,189,],1);
+a([123,202,],7);
+a([123,293,],1);
+a([122,161,],2);
+a([122,203,],2);
+a([123,204,205,206,],2);
+a([121,264,131,],8);
+a([123,132,265,],37);
+a([125,177,],1);
+a([125,200,],6);
+a([126,266,267,],8);
+a([128,45,46,47,],1);
+a([128,212,],1);
+a([121,124,125,],1);
+a([123,207,],4);
+a([123,132,],7);
+a([124,265,],7);
+a([125,200,],5);
+a([126,266,267,],5);
+a([125,246,],11);
+a([123,265,],1);
+a([121,278,279,],31);
+a([123,288,294,],3);
+a([125,267,],1);
+a([123,132,200,],1);
+a([124,265,],27);
+a([125,200,],2);
+a([126,266,267,],8);
+a([128,212,],1);
+a([121,202,],5);
+a([120,134,],1);
+a([121,45,46,47,327,],1);
+a([120,65,],12);
+a([121,252,],3);
+a([122,253,254,],1);
+a([124,255,],4);
+a([125,268,],3);
+a([126,269,174,175,176,],6);
+a([130,177,],1);
+a([131,177,],16);
+a([132,208,],1);
+a([133,209,],1);
+a([132,167,],6);
+a([133,168,],5);
+a([134,182,185,],9);
+a([134,178,],2);
+a([132,201,],9);
+a([128,225,],1);
+a([129,45,46,47,48,49,50,51,56,57,58,59,238,],1);
+a([129,226,],9);
+a([130,239,],13);
+a([127,161,],43);
+a([128,211,211,],7);
+a([126,124,125,],4);
+a([128,320,],2);
+a([126,270,271,],2);
+a([128,272,],6);
+a([129,307,],1);
+a([129,127,],37);
+a([130,128,],3);
+a([131,273,],5);
+a([132,131,],1);
+a([133,132,],2);
+a([134,265,],4);
+a([135,298,],11);
+a([135,246,],6);
+a([129,246,],12);
+a([126,131,],1);
+a([126,297,],1);
+a([125,280,],4);
+a([125,202,],1);
+a([124,131,],1);
+a([125,132,],1);
+a([126,127,],32);
+a([127,128,],15);
+a([128,273,],19);
+a([129,285,286,287,],4);
+a([132,299,300,],1);
+a([129,124,125,],5);
+a([131,207,],7);
+a([129,134,],4);
+a([130,275,],3);
+a([130,284,300,],2);
+a([129,278,279,],4);
+a([131,288,],10);
+a([132,294,],3);
+a([133,267,],1);
+a([133,301,],2);
+a([129,131,132,],3);
+a([131,265,],27);
+a([132,200,],11);
+a([133,266,267,],8);
+a([135,45,46,47,48,49,50,51,221,223,],1);
+a([135,212,],3);
+a([134,170,],3);
+a([132,246,],31);
+a([129,308,187,],1);
+a([131,188,189,],2);
+a([129,207,],1);
+a([127,132,],1);
+a([124,202,],2);
+a([122,280,],14);
+a([121,250,251,281,282,283,283,],21);
+a([121,202,],48);
+a([119,162,163,164,165,166,167,168,],31);
+a([121,228,],3);
+a([121,183,184,184,],1);
+a([119,124,125,],55);
+a([121,207,],4);
+a([121,132,],5);
+a([122,265,],32);
+a([123,200,],4);
+a([124,266,267,],6);
+a([123,246,],11);
+a([121,265,],1);
+a([119,65,],14);
+a([120,252,253,254,255,268,297,],1);
+a([120,250,],6);
+a([121,251,],7);
+a([122,154,],5);
+a([123,210,],1);
+a([124,187,45,46,47,48,49,],1);
+a([128,261,332,],1);
+a([125,188,189,],1);
+a([127,45,46,47,48,49,50,51,56,57,58,59,238,],1);
+a([123,162,163,164,165,166,167,168,],15);
+a([130,216,217,192,193,313,],1);
+a([132,236,],1);
+a([130,182,185,],2);
+a([125,183,184,184,167,168,],1);
+a([130,182,185,],7);
+a([124,187,],2);
+a([125,188,189,213,],1);
+a([123,157,158,159,160,],75);
+a([127,219,],1);
+a([127,302,],3);
+a([123,161,],5);
+a([124,211,211,212,],1);
+a([123,187,188,189,],1);
+a([123,202,],4);
+a([123,179,180,181,],4);
+a([122,281,],1);
+a([123,282,283,283,],18);
+a([126,333,],1);
+a([126,45,46,47,],1);
+a([126,213,],2);
+a([122,161,],50);
+a([123,211,],1);
+a([124,211,],4);
+a([125,212,],3);
+a([122,187,],5);
+a([123,188,189,],1);
+a([125,45,46,47,48,49,50,51,56,57,58,59,238,],1);
+a([125,213,],1);
+a([122,202,],1);
+a([121,212,],5);
+a([120,202,],46);
+a([119,290,291,169,],56);
+a([122,184,184,],1);
+a([124,167,],6);
+a([120,310,],6);
+a([119,171,],4);
+a([120,170,],5);
+a([119,187,],10);
+a([120,188,189,],6);
+a([122,213,],3);
+a([120,289,],1);
+a([119,202,],1);
+a([118,162,163,164,165,166,167,168,],2);
+a([118,157,158,159,160,],18);
+a([118,64,323,160,],1);
+a([118,161,],2);
+a([118,187,188,189,213,],2);
+a([118,202,],7);
+a([118,179,180,181,],2);
+a([117,203,204,205,206,],5);
+a([116,264,131,],3);
+a([118,132,265,],25);
+a([120,200,],7);
+a([121,266,267,],12);
+a([123,212,],2);
+a([116,124,125,],4);
+a([118,207,],5);
+a([118,132,],7);
+a([119,265,],4);
+a([120,200,],5);
+a([121,266,267,],2);
+a([122,170,],1);
+a([120,246,],7);
+a([116,278,279,],36);
+a([118,288,294,],3);
+a([118,132,265,],18);
+a([120,200,],2);
+a([121,266,267,],6);
+a([116,202,],4);
+a([115,65,],18);
+a([116,252,],2);
+a([117,253,254,255,],4);
+a([120,268,],1);
+a([121,269,174,175,176,],1);
+a([125,177,],1);
+a([126,177,],12);
+a([127,14,],1);
+a([127,15,],1);
+a([127,167,],3);
+a([128,168,],7);
+a([129,182,],1);
+a([130,185,],9);
+a([129,178,],2);
+a([127,201,],10);
+a([123,225,],1);
+a([124,226,],17);
+a([125,239,],11);
+a([122,161,],28);
+a([123,211,211,],3);
+a([121,124,125,],1);
+a([123,320,],5);
+a([121,270,271,],3);
+a([123,272,],3);
+a([124,307,],2);
+a([124,127,],32);
+a([125,128,],1);
+a([126,273,],9);
+a([127,131,],1);
+a([128,132,265,],2);
+a([130,298,],8);
+a([130,246,],5);
+a([124,246,],12);
+a([121,131,],1);
+a([121,334,],1);
+a([121,297,],1);
+a([120,280,],3);
+a([119,131,],1);
+a([120,132,],3);
+a([121,127,],21);
+a([122,128,],13);
+a([123,273,],14);
+a([124,45,46,47,],1);
+a([124,285,286,287,],3);
+a([127,299,300,],1);
+a([124,124,125,],14);
+a([126,207,],12);
+a([124,134,],2);
+a([125,275,],1);
+a([124,278,279,],4);
+a([126,288,],8);
+a([127,294,],3);
+a([128,267,],1);
+a([126,132,],2);
+a([124,131,],1);
+a([125,132,],2);
+a([126,265,],20);
+a([127,200,],10);
+a([128,266,267,],11);
+a([130,212,],2);
+a([127,246,],16);
+a([124,308,187,188,189,],2);
+a([122,132,],1);
+a([117,280,],8);
+a([116,250,251,281,282,283,283,],20);
+a([118,161,],1);
+a([116,202,],33);
+a([115,202,],3);
+a([114,162,163,164,165,166,167,168,],22);
+a([121,182,185,],1);
+a([116,183,184,184,167,168,],1);
+a([121,182,185,],1);
+a([114,124,125,],46);
+a([116,207,],3);
+a([116,132,],13);
+a([117,265,],28);
+a([118,200,],6);
+a([119,266,216,217,192,193,245,],1);
+a([120,267,],5);
+a([121,45,46,47,48,49,50,51,56,57,335,],1);
+a([118,246,],14);
+a([114,65,],8);
+a([115,252,253,254,255,268,297,],4);
+a([115,250,],6);
+a([116,251,],10);
+a([117,154,],7);
+a([118,210,187,],1);
+a([120,188,189,],1);
+a([118,162,163,164,165,166,167,168,],6);
+a([120,183,184,184,167,168,],3);
+a([125,182,185,],2);
+a([119,187,],3);
+a([120,188,189,],1);
+a([118,157,158,159,160,],49);
+a([118,161,],1);
+a([119,211,],1);
+a([118,187,188,189,213,],1);
+a([118,202,],3);
+a([118,179,180,181,],3);
+a([117,281,282,283,283,],12);
+a([121,213,],4);
+a([117,161,],42);
+a([118,211,],1);
+a([119,211,],5);
+a([120,212,],1);
+a([117,187,],2);
+a([118,188,189,],1);
+a([117,202,],5);
+a([115,202,],48);
+a([114,290,291,169,],34);
+a([117,184,184,167,],6);
+a([115,310,],1);
+a([114,171,],4);
+a([115,170,],2);
+a([114,187,],7);
+a([115,45,46,47,],1);
+a([115,188,189,],2);
+a([117,45,46,47,48,49,50,51,221,222,223,224,],1);
+a([117,213,],5);
+a([114,243,],1);
+a([113,162,163,164,165,166,167,168,],3);
+a([120,64,],2);
+a([113,157,158,159,160,],12);
+a([117,216,217,192,193,194,195,274,336,],1);
+a([113,64,],1);
+a([114,323,160,302,],1);
+a([113,161,],4);
+a([114,211,211,],1);
+a([113,187,188,189,],1);
+a([113,202,],1);
+a([113,179,180,181,],1);
+a([112,161,],1);
+a([112,132,265,65,202,],1);
+a([112,202,],1);
+a([112,203,],1);
+a([113,204,205,206,],1);
+a([111,264,131,],2);
+a([113,132,265,],14);
+a([115,200,],3);
+a([116,266,267,],6);
+a([111,124,125,],1);
+a([113,207,],4);
+a([113,132,],5);
+a([114,265,],3);
+a([115,200,],4);
+a([116,266,267,],3);
+a([118,212,],1);
+a([115,246,],4);
+a([113,265,],1);
+a([111,278,279,],21);
+a([113,288,294,],1);
+a([115,267,],1);
+a([113,132,265,],15);
+a([115,200,],2);
+a([116,266,267,],5);
+a([118,45,46,47,],1);
+a([111,202,],1);
+a([110,134,],1);
+a([110,65,],11);
+a([111,252,253,254,255,],3);
+a([115,268,],2);
+a([116,269,174,175,176,177,177,],10);
+a([122,14,],2);
+a([122,208,],1);
+a([122,167,],4);
+a([123,168,],1);
+a([124,182,],1);
+a([125,185,],4);
+a([122,201,],5);
+a([118,225,45,46,47,48,49,],1);
+a([119,226,],7);
+a([120,239,],3);
+a([117,161,],23);
+a([118,211,211,],4);
+a([120,212,325,],1);
+a([116,124,125,320,],3);
+a([116,270,271,],3);
+a([118,272,],2);
+a([119,127,],18);
+a([120,128,],3);
+a([121,273,],1);
+a([122,131,],1);
+a([123,132,],1);
+a([124,265,],2);
+a([125,298,],8);
+a([125,246,],2);
+a([119,246,],4);
+a([116,334,],1);
+a([115,280,],5);
+a([114,131,132,127,],18);
+a([117,128,],6);
+a([118,273,],7);
+a([119,285,286,287,299,300,],1);
+a([119,124,125,],7);
+a([121,207,],2);
+a([119,134,],5);
+a([119,278,279,],2);
+a([121,288,],4);
+a([122,294,],4);
+a([121,132,],1);
+a([119,131,132,],1);
+a([121,265,],13);
+a([122,200,],6);
+a([123,266,267,],6);
+a([124,170,],1);
+a([122,246,],8);
+a([119,308,187,188,189,],2);
+a([123,45,46,47,48,49,50,51,232,304,],1);
+a([114,202,],1);
+a([112,280,],8);
+a([112,202,],1);
+a([111,250,251,281,282,283,283,],11);
+a([113,161,],1);
+a([111,202,],19);
+a([110,202,],1);
+a([109,162,163,164,165,166,167,168,],18);
+a([111,183,184,184,167,168,],1);
+a([109,124,125,],24);
+a([111,207,],3);
+a([111,132,],3);
+a([112,265,],10);
+a([113,200,],1);
+a([114,266,216,217,192,193,194,195,196,197,330,331,],1);
+a([115,267,],5);
+a([116,212,],1);
+a([113,246,],8);
+a([109,65,],8);
+a([110,252,253,254,255,268,297,],3);
+a([110,250,],7);
+a([111,251,],3);
+a([112,154,],3);
+a([113,210,],1);
+a([113,162,163,164,165,166,167,168,],3);
+a([120,45,46,47,48,49,50,51,241,],1);
+a([120,182,185,],2);
+a([114,187,188,189,],1);
+a([113,157,158,159,160,],39);
+a([117,302,],1);
+a([113,161,],1);
+a([113,202,],1);
+a([112,281,282,283,283,],7);
+a([116,213,],4);
+a([112,161,],30);
+a([113,211,211,],3);
+a([112,187,],1);
+a([112,202,],3);
+a([110,202,],20);
+a([109,290,291,169,],36);
+a([112,184,184,167,],4);
+a([109,171,],3);
+a([110,170,],4);
+a([109,187,],7);
+a([110,188,189,],4);
+a([112,213,],2);
+a([108,162,163,164,165,166,167,168,],1);
+a([108,157,158,159,160,],6);
+a([112,150,],1);
+a([108,64,323,160,302,],1);
+a([108,161,],1);
+a([109,211,],1);
+a([108,202,],4);
+a([107,203,],1);
+a([108,204,205,206,],1);
+a([106,264,131,],1);
+a([108,132,265,],9);
+a([110,200,],4);
+a([111,266,267,],2);
+a([106,124,125,],1);
+a([108,207,],1);
+a([108,132,],1);
+a([109,265,],1);
+a([110,200,],2);
+a([111,266,267,],1);
+a([110,246,],2);
+a([106,278,279,],18);
+a([108,288,294,],1);
+a([108,132,265,],13);
+a([110,200,],3);
+a([111,266,267,],1);
+a([113,45,46,47,],1);
+a([106,202,],1);
+a([105,65,],3);
+a([106,252,],2);
+a([107,253,254,],1);
+a([109,255,],3);
+a([110,268,269,174,175,176,],1);
+a([115,177,177,],2);
+a([117,167,],2);
+a([118,168,],1);
+a([119,182,185,],10);
+a([117,201,],3);
+a([113,225,226,],4);
+a([115,239,],6);
+a([112,161,],5);
+a([113,211,211,],5);
+a([111,124,125,],1);
+a([111,270,271,272,],1);
+a([114,307,],1);
+a([114,127,],12);
+a([115,128,],2);
+a([116,273,131,132,],1);
+a([119,265,],1);
+a([120,298,],2);
+a([114,246,],2);
+a([110,280,],1);
+a([109,131,132,127,],4);
+a([112,128,],3);
+a([113,273,],5);
+a([114,124,125,],2);
+a([116,207,],1);
+a([114,134,],1);
+a([115,284,300,],1);
+a([114,278,279,],3);
+a([116,288,],3);
+a([117,294,],3);
+a([118,301,],1);
+a([114,131,132,265,],6);
+a([117,200,],3);
+a([118,266,267,],5);
+a([117,246,],7);
+a([114,308,187,188,189,213,],1);
+a([107,280,],4);
+a([106,250,251,281,282,283,283,],4);
+a([108,161,],1);
+a([106,202,],12);
+a([105,202,],1);
+a([104,162,163,164,165,166,167,168,],10);
+a([104,124,125,],19);
+a([106,207,],1);
+a([106,132,],4);
+a([107,265,],14);
+a([108,200,266,267,],2);
+a([108,246,],5);
+a([104,65,],2);
+a([105,252,253,254,255,268,297,],1);
+a([105,250,],3);
+a([106,251,],1);
+a([107,154,210,],1);
+a([109,187,188,189,],1);
+a([108,162,163,164,165,166,167,168,],2);
+a([115,182,185,],1);
+a([110,183,184,184,167,168,],1);
+a([109,187,],2);
+a([108,157,158,159,160,],18);
+a([112,302,],2);
+a([107,281,282,283,283,],4);
+a([107,161,],17);
+a([108,211,211,],3);
+a([110,212,325,],1);
+a([105,202,],15);
+a([104,290,291,169,],13);
+a([107,184,184,167,],2);
+a([105,310,],1);
+a([104,171,],3);
+a([105,170,],5);
+a([104,187,],3);
+a([105,188,189,],2);
+a([103,157,158,159,160,],4);
+a([103,161,],1);
+a([103,293,],1);
+a([101,264,131,132,265,],9);
+a([105,200,266,267,],2);
+a([101,124,125,],1);
+a([103,132,],1);
+a([104,265,],1);
+a([105,200,],2);
+a([101,278,279,],8);
+a([103,132,265,],7);
+a([105,200,266,267,],1);
+a([108,212,],1);
+a([101,202,],2);
+a([100,65,252,253,254,255,268,269,174,175,176,177,177,],3);
+a([112,14,],1);
+a([112,167,168,182,185,],2);
+a([112,201,],3);
+a([108,225,226,239,],3);
+a([107,161,],7);
+a([106,270,271,],1);
+a([108,272,127,],5);
+a([110,128,],1);
+a([111,273,131,132,265,],1);
+a([115,298,],2);
+a([109,246,],2);
+a([106,297,],1);
+a([105,280,],2);
+a([104,131,132,127,],3);
+a([107,128,],1);
+a([108,273,],3);
+a([109,124,125,],3);
+a([111,207,],1);
+a([109,134,],2);
+a([110,284,300,],1);
+a([109,278,279,],1);
+a([111,288,],2);
+a([112,294,],2);
+a([113,301,],1);
+a([109,131,132,265,],1);
+a([112,200,],3);
+a([113,266,267,],1);
+a([112,246,],1);
+a([102,280,],1);
+a([101,250,251,281,282,283,283,],2);
+a([101,202,],1);
+a([100,202,],1);
+a([99,162,163,164,165,166,167,168,],4);
+a([106,182,185,],1);
+a([101,183,184,184,167,168,],1);
+a([99,124,125,],13);
+a([101,132,],1);
+a([102,265,],3);
+a([103,200,],2);
+a([104,266,267,],1);
+a([105,170,],1);
+a([103,246,],4);
+a([99,65,250,251,],3);
+a([102,154,],4);
+a([103,210,187,45,46,47,],1);
+a([103,162,163,164,165,166,167,168,],1);
+a([105,183,184,184,167,168,],1);
+a([110,182,185,],1);
+a([104,187,],1);
+a([103,157,158,159,160,],6);
+a([103,161,],1);
+a([102,281,282,283,283,],2);
+a([106,213,],1);
+a([102,161,],8);
+a([103,211,211,],1);
+a([105,212,325,],1);
+a([102,202,],2);
+a([100,202,],12);
+a([99,290,291,],1);
+a([101,169,],11);
+a([102,184,184,167,],2);
+a([99,187,188,189,45,46,47,48,49,50,51,232,233,],1);
+a([98,157,158,159,160,],3);
+a([98,187,188,189,],1);
+a([96,264,131,132,265,],1);
+a([96,124,125,207,],1);
+a([98,132,],1);
+a([99,265,246,],1);
+a([96,278,279,],2);
+a([98,132,265,],2);
+a([100,200,],2);
+a([95,65,252,253,254,255,268,269,174,175,176,177,177,167,168,182,],1);
+a([103,225,226,239,],1);
+a([103,319,],1);
+a([102,161,],5);
+a([103,211,211,212,],1);
+a([101,270,271,],1);
+a([103,272,127,],1);
+a([105,128,273,131,132,265,246,],1);
+a([100,280,],2);
+a([99,131,132,127,],1);
+a([102,128,273,],2);
+a([104,124,125,],1);
+a([106,207,],1);
+a([104,134,],2);
+a([104,278,279,],1);
+a([106,288,],2);
+a([104,131,132,265,],2);
+a([107,200,],2);
+a([107,246,],1);
+a([102,132,],1);
+a([97,280,],1);
+a([96,202,],3);
+a([94,162,163,164,165,166,167,168,],1);
+a([94,124,125,],3);
+a([96,132,],1);
+a([97,265,],3);
+a([98,246,],1);
+a([94,65,250,],1);
+a([96,251,154,],1);
+a([98,162,163,164,165,166,167,168,],2);
+a([98,157,158,159,160,],4);
+a([97,281,282,283,283,],1);
+a([97,161,],2);
+a([95,202,],1);
+a([94,290,291,169,],2);
+a([94,171,170,],1);
+a([94,187,188,189,],1);
+a([94,202,],1);
+a([93,162,163,164,165,166,167,168,],1);
+a([93,157,158,159,160,],1);
+a([97,150,],1);
+a([91,264,131,],1);
+a([93,132,265,200,],1);
+a([96,266,267,],1);
+a([91,278,279,],4);
+a([93,288,294,],1);
+a([93,132,265,200,],1);
+a([96,266,267,],1);
+a([90,65,252,253,254,255,268,269,174,225,226,239,],2);
+a([97,161,],4);
+a([96,270,271,272,127,128,273,],1);
+a([94,131,132,127,],1);
+a([97,128,273,],2);
+a([99,278,279,288,],2);
+a([99,131,132,265,],1);
+a([102,246,],1);
+a([91,202,],1);
+a([89,162,163,164,165,166,167,168,],1);
+a([89,124,125,],1);
+a([89,65,250,],1);
+a([91,251,154,157,158,159,160,],1);
+a([92,161,],3);
+a([93,211,211,],1);
+a([92,187,188,189,],1);
+a([90,202,],2);
+a([89,290,291,169,],2);
+a([89,187,],1);
+a([86,264,131,132,265,200,],1);
+a([86,278,279,],1);
+a([88,132,265,200,],1);
+a([85,65,],1);
+a([86,252,253,254,255,268,269,174,175,176,177,177,201,],1);
+a([93,225,226,],1);
+a([92,161,],1);
+a([93,211,211,],1);
+a([91,270,271,272,127,],1);
+a([90,280,],1);
+a([89,131,132,127,],1);
+a([92,128,],1);
+a([93,273,124,125,207,],1);
+a([94,134,],1);
+a([94,278,279,288,],1);
+a([87,280,],1);
+a([84,162,163,319,],4);
+a([84,124,125,132,265,],1);
+a([84,65,250,251,154,210,187,],1);
+a([88,162,163,164,165,166,167,168,182,185,],1);
+a([88,157,158,159,160,],3);
+a([84,171,],1);
+a([84,187,],2);
+a([83,64,323,160,],1);
+a([80,65,],2);
+a([81,252,253,254,255,268,269,161,],1);
+a([84,131,132,127,128,273,131,132,265,200,266,267,],1);
+a([92,246,],1);
+a([79,162,163,164,165,166,167,168,],2);
+a([81,319,],1);
+a([79,124,125,],1);
+a([79,65,250,251,154,157,158,159,160,],2);
+a([82,281,282,283,283,],1);
+a([80,202,],1);
+a([79,290,291,169,],1);
+a([77,203,204,205,206,],1);
+a([76,264,131,132,265,200,],1);
+a([81,266,267,],1);
+a([76,278,279,132,265,],1);
+a([75,65,252,253,254,131,132,127,128,273,],1);
+a([74,65,250,251,154,202,],1);
+a([75,202,],1);
+a([73,64,323,160,],1);
+a([69,162,163,319,],1);
+a([68,64,323,160,],1);
+a([66,278,279,132,265,200,],1);
+a([64,161,211,],1);
+a([59,65,250,251,281,282,283,283,],1);
+a([54,65,250,251,154,157,158,159,160,],1);
+a([50,65,252,253,254,131,132,127,],1);
+a([10,65,252,253,254,255,121,122,123,124,125,126,127,128,129,130,117,109,337,338,339,340,340,341,342,343,344,],1);
+a([10,345,346,347,348,349,350,351,352,353,354,355,356,],1);
+a([6,357,358,359,360,345,346,347,348,349,350,361,362,363,364,365,366,367,368,369,370,],1);
+a([9,371,372,373,374,375,376,115,377,378,376,115,377,379,115,376,117,109,377,380,115,376,117,109,377,381,115,376,117,109,377,382,115,376,117,109,377,383,384,385,373,374,375,376,115,377,378,376,115,377,379,],1);
+a([6,386,387,388,389,390,136,391,392,393,394,395,396,397,398,399,400,],1);
+a([0,273,131,251,281,],1);
+a([0,401,22,23,26,402,403,404,405,406,407,408,409,410,411,],1);
+a([0,412,],1);
+a([0,413,414,415,416,417,418,419,],1);
+a([3,420,421,422,423,424,425,],1);
+a([7,426,427,428,429,430,431,432,433,434,],1);
+a([14,435,436,437,438,439,],1);
+a([8,440,441,442,],1);
+a([10,443,],5);
+a([10,444,],1);
+a([10,445,],2);
+a([11,446,],1);
+a([10,447,],4);
+a([11,448,],1);
+a([11,449,],1);
+a([12,448,],1);
+a([12,450,],1);
+a([10,451,],1);
+a([11,452,],2);
+a([11,453,],1);
+a([10,454,],7);
+a([11,455,456,457,],1);
+a([13,458,459,460,],1);
+a([13,461,],1);
+a([11,456,],3);
+a([12,457,],2);
+a([13,457,],1);
+a([14,457,457,],1);
+a([13,462,463,],1);
+a([13,464,462,465,466,],1);
+a([12,458,467,458,467,468,],1);
+a([10,469,],1);
+a([9,470,471,],1);
+a([9,472,473,],1);
+a([9,474,475,],1);
+a([10,476,477,478,],1);
+a([10,479,480,],1);
+a([11,481,],2);
+a([12,482,],2);
+a([11,483,],1);
+a([12,484,],2);
+a([12,485,486,],1);
+a([13,487,],1);
+a([12,488,],1);
+a([13,489,490,491,],1);
+a([12,492,],3);
+a([13,493,],1);
+a([12,462,465,],1);
+a([13,463,],1);
+a([11,494,],1);
+a([12,495,],2);
+a([12,496,],5);
+a([12,497,],2);
+a([12,498,499,],1);
+a([12,500,],1);
+a([11,501,],2);
+a([11,502,],5);
+a([12,503,],1);
+a([11,504,505,],1);
+a([11,506,507,],2);
+a([13,45,46,47,],2);
+a([11,508,],7);
+a([12,507,45,46,47,],1);
+a([16,48,49,50,51,56,57,58,59,238,],1);
+a([12,509,],1);
+a([11,510,],1);
+a([11,511,],1);
+a([11,313,],2);
+a([12,45,46,47,48,49,50,51,328,231,],1);
+a([19,221,222,223,224,],1);
+a([11,512,],1);
+a([9,513,],1);
+a([10,514,],1);
+a([10,515,],1);
+a([10,516,],1);
+a([10,517,],1);
+a([10,518,],1);
+a([10,519,],10);
+a([11,520,],1);
+a([10,521,],4);
+a([11,499,],1);
+a([11,522,],2);
+a([11,523,],5);
+a([12,499,],1);
+a([10,524,],2);
+a([11,499,],2);
+a([11,525,],3);
+a([12,499,],2);
+a([10,526,],20);
+a([11,527,],1);
+a([11,515,],1);
+a([11,528,],3);
+a([12,529,],1);
+a([11,530,531,],1);
+a([11,532,533,],1);
+a([11,534,461,],1);
+a([12,533,],1);
+a([13,461,],1);
+a([11,535,],2);
+a([10,536,],6);
+a([11,537,],2);
+a([11,499,],2);
+a([11,538,],1);
+a([11,528,],1);
+a([12,539,],1);
+a([11,540,],1);
+a([11,469,],1);
+a([11,541,],6);
+a([12,528,],1);
+a([12,542,],1);
+a([12,543,],1);
+a([11,544,],2);
+a([12,499,],3);
+a([12,542,],2);
+a([11,545,],9);
+a([12,546,],1);
+a([12,499,],3);
+a([11,547,],4);
+a([12,499,],1);
+a([12,548,],2);
+a([11,549,],1);
+a([10,550,545,],5);
+a([12,546,],1);
+a([12,499,],1);
+a([10,551,],1);
+a([10,552,],2);
+a([10,502,],20);
+a([11,515,],1);
+a([11,553,],1);
+a([11,554,],1);
+a([11,555,],1);
+a([11,548,],1);
+a([11,503,],2);
+a([10,556,],4);
+a([10,557,],19);
+a([11,558,],13);
+a([11,559,],1);
+a([10,560,],1);
+a([10,561,],1);
+a([11,562,],1);
+a([12,520,],2);
+a([12,563,],1);
+a([13,564,],3);
+a([13,565,],1);
+a([10,566,567,],6);
+a([12,499,],5);
+a([10,568,],4);
+a([11,499,],1);
+a([10,506,],2);
+a([10,508,],14);
+a([11,546,],2);
+a([11,507,],1);
+a([11,509,],6);
+a([12,546,],5);
+a([12,499,],2);
+a([10,569,],1);
+a([10,570,],1);
+a([10,571,],1);
+a([10,572,],1);
+a([9,573,574,],6);
+a([11,575,],2);
+a([12,576,],1);
+a([13,577,],1);
+a([10,578,579,580,581,582,],1);
+a([10,583,],2);
+a([11,584,],1);
+a([11,580,585,],1);
+a([12,586,],1);
+a([12,587,588,],1);
+a([12,589,],1);
+a([12,590,591,],1);
+a([9,592,],5);
+a([10,593,],1);
+a([10,594,595,],1);
+a([10,493,],1);
+a([10,596,597,],1);
+a([12,598,599,],1);
+a([11,600,601,],1);
+a([11,598,],1);
+a([11,602,],1);
+a([12,603,],1);
+a([10,604,605,606,],1);
+a([9,607,608,609,610,611,612,],1);
+a([9,613,],1);
+a([9,614,],1);
+a([8,615,616,],1);
+a([9,617,],1);
+a([9,618,],1);
+a([9,619,],1);
+a([9,620,621,],2);
+a([9,622,623,624,],1);
+a([11,625,626,],1);
+a([9,627,628,],1);
+a([11,629,],1);
+a([11,630,631,],1);
+a([12,630,632,633,634,635,636,],1);
+a([16,637,531,],1);
+a([11,638,638,639,640,],1);
+a([14,641,],1);
+a([14,642,641,],3);
+a([14,643,644,645,646,647,464,462,463,],1);
+a([12,639,642,648,649,],1);
+a([13,643,650,],1);
+a([11,651,],1);
+a([11,652,],1);
+a([11,653,],1);
+a([11,654,],2);
+a([11,655,],2);
+a([11,656,],1);
+a([11,657,],1);
+a([11,658,],13);
+a([12,654,],1);
+a([12,659,],5);
+a([12,660,],1);
+a([12,45,46,47,],2);
+a([11,661,],13);
+a([12,662,],5);
+a([11,663,],21);
+a([12,664,],1);
+a([12,665,],15);
+a([13,666,],1);
+a([13,667,],2);
+a([14,668,],2);
+a([15,669,],1);
+a([13,670,],3);
+a([13,671,],5);
+a([14,672,489,],1);
+a([16,490,673,674,],1);
+a([14,646,675,676,677,678,],1);
+a([15,679,],1);
+a([14,668,],3);
+a([14,680,],17);
+a([14,679,],1);
+a([14,681,],1);
+a([13,648,682,],1);
+a([12,683,],1);
+a([12,679,],1);
+a([11,665,],1);
+a([11,684,],8);
+a([12,685,],2);
+a([11,686,],15);
+a([12,687,],1);
+a([12,688,],1);
+a([12,689,],1);
+a([13,690,],1);
+a([13,691,692,693,],1);
+a([13,694,695,696,637,531,],1);
+a([13,697,],3);
+a([14,698,680,],1);
+a([12,699,],2);
+a([13,700,],2);
+a([14,701,702,703,462,],1);
+a([18,463,],1);
+a([17,704,705,],2);
+a([19,706,],1);
+a([18,707,],1);
+a([18,708,],1);
+a([13,670,],1);
+a([13,690,],5);
+a([13,709,],2);
+a([14,670,],3);
+a([13,691,710,711,],1);
+a([14,692,712,713,],1);
+a([13,714,],1);
+a([13,715,],1);
+a([12,697,],1);
+a([11,716,],1);
+a([11,510,],4);
+a([11,660,],1);
+a([11,511,],2);
+a([10,717,],2);
+a([11,718,],1);
+a([11,719,],1);
+a([11,720,],2);
+a([12,721,722,723,462,463,],1);
+a([12,724,700,701,],1);
+a([12,725,],1);
+a([12,726,727,464,728,],1);
+a([12,729,],1);
+a([12,730,731,],1);
+a([12,715,692,712,713,],1);
+a([12,732,733,734,],2);
+a([13,735,],1);
+a([12,736,],1);
+a([12,737,738,739,740,741,],3);
+a([11,742,],1);
+a([10,313,],1);
+a([9,743,],2);
+a([10,717,720,744,],1);
+a([10,745,],3);
+a([10,746,],1);
+a([9,747,748,],1);
+a([10,749,],3);
+a([11,750,751,752,753,754,755,756,757,758,759,],1);
+a([11,760,],1);
+a([11,761,762,],2);
+a([11,763,764,765,764,765,489,],1);
+a([16,764,765,764,764,765,766,],1);
+a([19,765,766,489,],1);
+a([20,764,],1);
+a([21,765,764,],1);
+a([23,765,764,765,764,764,765,764,765,766,489,],1);
+a([16,767,],1);
+a([9,768,],1);
+a([9,769,],2);
+a([10,647,],1);
+a([10,770,771,772,],1);
+a([10,773,],2);
+a([10,774,],1);
+a([11,775,],1);
+a([11,776,],1);
+a([11,777,],1);
+a([10,778,],1);
+a([10,779,],1);
+a([9,780,781,],2);
+a([11,624,782,],1);
+a([11,626,],1);
+a([11,783,],1);
+a([9,784,628,630,630,632,785,786,787,],1);
+a([12,633,634,635,788,730,],1);
+a([11,638,638,638,639,641,789,],1);
+a([12,639,642,680,],2);
+a([13,643,650,],1);
+a([11,790,],1);
+a([11,664,],1);
+a([11,655,],1);
+a([11,658,],6);
+a([12,659,],1);
+a([12,664,],1);
+a([12,45,46,47,48,49,50,51,232,304,],1);
+a([11,661,],5);
+a([12,662,],2);
+a([11,663,],6);
+a([12,629,],1);
+a([12,748,],1);
+a([12,665,],3);
+a([13,667,],3);
+a([14,668,],1);
+a([13,671,],1);
+a([14,646,462,465,],1);
+a([14,791,],1);
+a([14,680,],5);
+a([12,683,],2);
+a([11,684,],2);
+a([12,664,],1);
+a([11,686,695,692,693,],1);
+a([13,715,692,693,],1);
+a([12,644,792,793,794,],1);
+a([12,689,694,695,696,710,],1);
+a([12,699,],1);
+a([13,700,701,702,703,705,],1);
+a([13,795,],1);
+a([13,670,],1);
+a([13,709,],1);
+a([14,670,],1);
+a([11,510,],1);
+a([11,511,],1);
+a([11,796,],1);
+a([10,717,720,],3);
+a([12,797,798,799,],1);
+a([12,800,],1);
+a([12,724,700,701,702,703,705,],1);
+a([12,801,726,771,489,490,802,],1);
+a([12,803,],1);
+a([13,804,489,490,462,465,463,805,],1);
+a([12,806,],1);
+a([12,744,],1);
+a([12,730,],1);
+a([12,715,692,799,],1);
+a([12,732,],1);
+a([13,733,629,],1);
+a([14,660,],1);
+a([12,807,734,],1);
+a([9,808,],1);
+a([10,730,],1);
+a([11,731,],1);
+a([9,717,692,],1);
+a([11,693,],2);
+a([10,720,797,798,693,],2);
+a([11,809,],1);
+a([11,724,700,701,702,703,704,810,],1);
+a([12,701,702,703,704,705,],1);
+a([15,702,703,462,],1);
+a([11,722,811,702,703,704,],1);
+a([16,707,],1);
+a([15,702,703,812,],1);
+a([11,725,813,692,],1);
+a([14,712,713,],1);
+a([14,693,],2);
+a([13,715,692,693,],6);
+a([13,792,462,],1);
+a([12,814,],2);
+a([11,815,692,712,713,730,],1);
+a([11,803,],1);
+a([12,804,],1);
+a([12,816,740,741,],2);
+a([11,770,],1);
+a([11,817,818,730,],1);
+a([12,675,676,674,],1);
+a([11,744,],3);
+a([12,819,],1);
+a([12,313,45,46,47,],1);
+a([11,730,731,],1);
+a([11,715,],4);
+a([12,711,],1);
+a([12,692,820,821,],1);
+a([13,712,713,],1);
+a([13,693,],1);
+a([11,732,733,822,],2);
+a([12,735,],1);
+a([11,823,],1);
+a([11,824,],1);
+a([11,807,],1);
+a([12,715,692,712,713,],1);
+a([14,693,],4);
+a([11,737,647,],1);
+a([12,738,739,740,741,],3);
+a([11,18,],1);
+a([10,825,],1);
+a([9,826,827,767,],1);
+a([9,828,717,720,725,813,829,],1);
+a([12,801,830,831,],1);
+a([12,803,804,647,],1);
+a([12,730,731,],1);
+a([12,715,711,],1);
+a([13,692,688,],1);
+a([12,832,],1);
+a([12,833,],1);
+a([12,807,],2);
+a([12,737,738,739,740,741,],1);
+a([12,462,465,],1);
+a([11,832,],1);
+a([10,834,835,730,731,],2);
+a([11,836,837,],1);
+a([11,838,839,530,],1);
+a([10,840,841,842,462,463,],1);
+a([9,843,624,],1);
+a([10,625,],1);
+a([11,452,],1);
+a([9,844,],1);
+a([8,624,],2);
+a([8,845,846,847,848,],1);
+a([11,849,850,851,852,429,430,431,432,435,436,853,854,678,855,],1);
+a([13,856,857,858,859,860,],1);
+a([13,861,862,],1);
+a([13,863,864,865,866,867,724,701,702,868,702,868,],1);
+a([13,845,846,847,849,869,870,865,871,872,873,874,],1);
+a([17,875,876,462,465,],1);
+a([17,850,851,852,429,430,431,432,435,436,853,854,877,878,879,880,881,882,883,884,],1);
+a([30,885,886,881,887,888,],1);
+a([18,845,846,847,849,850,889,890,891,867,],1);
+a([23,845,846,847,849,850,861,862,892,893,812,676,],1);
+a([28,845,846,894,848,710,],1);
+a([30,847,849,895,896,],1);
+a([30,897,898,867,899,],1);
+a([28,900,900,845,846,847,849,850,845,846,847,849,901,902,903,904,905,906,867,737,738,739,740,741,],1);
+a([35,900,845,846,847,849,901,907,908,909,910,911,867,803,816,462,],1);
+a([38,912,913,],1);
+a([30,900,845,846,847,849,850,866,914,702,703,18,],1);
+a([27,915,916,802,917,918,678,855,919,920,921,922,],1);
+a([23,900,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,900,923,924,842,867,925,],1);
+a([24,900,845,846,847,849,850,851,852,429,430,431,432,435,436,926,756,757,758,927,921,922,],1);
+a([30,900,845,846,847,849,850,845,846,847,849,928,530,],1);
+a([40,901,902,903,904,929,930,931,932,933,461,],1);
+a([35,901,907,867,],1);
+a([22,934,867,744,],1);
+a([22,935,936,848,932,313,],1);
+a([22,937,867,938,462,939,],1);
+a([22,940,941,942,943,944,945,],1);
+a([18,900,923,916,802,946,],1);
+a([19,845,846,847,849,850,866,702,703,462,465,463,947,],1);
+a([24,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,854,],1);
+a([19,900,948,949,867,950,951,706,],1);
+a([20,845,846,847,849,850,900,845,846,847,849,850,900,845,846,847,849,850,900,845,846,847,849,952,],1);
+a([20,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,953,954,955,956,957,958,888,959,],1);
+a([26,900,948,702,703,704,810,705,],1);
+a([31,705,],1);
+a([17,935,895,871,872,960,961,],1);
+a([13,900,845,846,847,849,850,851,852,429,962,963,964,965,966,],1);
+a([19,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,861,862,967,893,802,946,],1);
+a([41,892,893,802,],1);
+a([38,901,902,903,904,929,930,968,969,970,530,],1);
+a([34,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,901,907,867,971,462,465,],1);
+a([35,900,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,851,852,429,430,431,432,435,436,853,854,678,855,972,],1);
+a([46,901,907,973,974,975,976,],1);
+a([33,901,902,903,904,929,930,977,978,932,933,979,461,],1);
+a([29,900,900,845,846,847,849,850,900,845,846,847,849,915,980,867,],1);
+a([28,981,982,983,865,866,867,724,700,],1);
+a([24,900,900,923,18,],1);
+a([26,845,846,984,865,],1);
+a([19,900,845,846,847,849,850,845,846,847,849,850,851,852,429,430,431,432,435,436,853,854,678,855,985,986,],1);
+a([30,845,846,847,849,850,889,890,987,867,],1);
+a([35,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,940,941,],1);
+a([44,981,982,988,914,712,],1);
+a([39,989,990,949,867,725,],1);
+a([35,900,923,916,462,991,],1);
+a([29,989,916,802,946,706,],1);
+a([25,900,900,845,846,847,849,850,845,846,847,849,992,993,793,744,],1);
+a([32,900,845,846,847,849,850,900,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,851,994,854,877,438,678,],1);
+a([55,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,897,823,],1);
+a([33,936,932,],1);
+a([27,900,845,846,847,849,850,900,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,995,848,932,933,],1);
+a([55,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,981,982,949,996,997,998,999,22,23,79,],1);
+a([24,901,907,867,462,465,],1);
+a([20,900,845,846,847,849,850,845,846,847,849,875,1000,1001,1002,867,744,],1);
+a([30,850,845,846,847,849,850,851,852,429,430,431,432,435,436,853,854,877,878,1003,1004,],1);
+a([36,900,845,846,847,849,850,900,845,846,847,849,901,907,1005,893,802,531,],1);
+a([26,900,845,846,847,849,850,900,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,900,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,900,867,778,702,703,705,],1);
+a([25,981,982,988,923,867,722,811,702,703,462,465,1006,],1);
+a([21,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,934,867,736,],1);
+a([27,900,900,845,846,847,849,850,845,846,847,849,850,845,846,847,1007,],1);
+a([42,849,850,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,850,851,852,1008,],1);
+a([18,915,1001,1009,],1);
+a([18,937,865,866,867,722,811,702,868,1010,462,465,],1);
+a([17,1011,867,732,],1);
+a([14,900,],1);
+a([15,845,846,847,849,850,1012,1013,1014,1015,],1);
+a([20,845,846,847,849,895,896,866,970,],1);
+a([24,850,851,852,1008,1016,],1);
+a([25,845,846,847,849,850,845,846,847,849,850,863,1017,1018,909,18,],1);
+a([32,1019,1020,],1);
+a([30,900,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,900,900,845,846,847,849,850,900,845,846,867,744,1021,],1);
+a([51,937,867,1022,462,463,],1);
+a([41,901,865,702,703,],1);
+a([20,900,845,846,847,849,850,851,852,429,430,431,432,435,436,926,756,757,758,927,438,1023,1023,1024,1025,],1);
+a([26,845,846,847,849,850,861,862,967,491,],1);
+a([31,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,863,1026,1027,1028,],1);
+a([45,940,941,867,1029,],1);
+a([36,900,900,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,895,1030,1031,970,],1);
+a([53,850,845,846,847,849,850,845,846,847,849,850,900,1032,1015,],1);
+a([54,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,851,852,429,430,431,432,435,436,853,854,877,438,439,],1);
+a([70,845,846,847,849,850,900,900,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,901,902,903,904,929,1033,968,969,867,770,775,],1);
+a([31,900,900,845,846,847,849,850,900,948,916,802,946,],1);
+a([26,900,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,900,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,869,870,865,871,872,960,],1);
+a([21,900,900,845,846,847,849,850,900,845,846,847,849,850,900,900,845,846,847,849,850,900,900,900,845,1034,1035,1036,],1);
+a([19,981,982,988,923,916,802,917,918,678,855,919,920,921,922,],1);
+a([15,900,845,846,847,849,850,845,846,847,849,850,851,852,429,430,431,432,435,436,853,854,877,878,885,886,881,882,883,1037,],1);
+a([21,900,845,846,847,849,850,900,900,900,845,846,847,849,937,],1);
+a([22,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,850,845,846,894,848,710,],1);
+a([38,900,845,846,847,849,850,900,845,846,847,849,850,845,846,847,849,850,845,846,847,849,901,907,908,909,910,911,969,867,803,1038,],1);
+a([18,897,867,778,702,703,705,],1);
+a([10,1039,],1);
+a([8,625,],3);
+a([9,452,],1);
+a([6,1040,1041,1042,1043,1044,1045,1046,1047,1048,1049,],1);
+a([16,1050,756,757,758,927,438,678,],1);
+a([17,975,976,1051,1052,1053,1054,],1);
+a([16,1055,1056,],1);
+a([17,1057,1058,1048,1049,],1);
+a([21,1055,854,678,855,985,1059,1023,1024,1025,],1);
+a([17,854,678,855,985,1059,678,],1);
+a([11,1060,1061,1062,1063,],1);
+a([13,1064,],1);
+a([10,1065,1066,1067,1068,],1);
+a([13,1069,1070,1071,1072,1073,],1);
+a([13,1074,1075,],1);
+a([11,1076,1077,1071,600,],1);
+a([10,1078,1079,1080,1081,],1);
+a([13,1082,],1);
+a([13,1083,1084,857,858,859,860,1085,],2);
+a([11,1086,1087,],1);
+a([12,1088,],3);
+a([13,1089,1090,1091,],1);
+a([15,1092,],1);
+a([12,1093,1094,],1);
+a([13,1095,],1);
+a([12,1096,],1);
+a([9,1097,609,610,1098,1099,45,46,47,],1);
+a([13,531,45,46,47,48,49,50,51,56,57,58,59,295,],1);
+a([9,1100,1101,],2);
+a([6,1102,1051,1052,],1);
+a([8,678,855,919,920,986,],1);
+a([5,1103,972,],1);
+a([3,1104,1105,1106,1107,],1);
+a([5,1108,1109,1110,1111,1112,1113,1114,],1);
+a([11,1115,1116,1117,1118,],2);
+a([12,1117,1118,22,23,24,],2);
+a([16,26,79,80,81,82,83,84,],1);
+a([12,1119,],1);
+a([11,1120,1121,1122,1123,],1);
+a([14,1124,],1);
+a([12,1125,1126,1127,1128,],1);
+a([14,1117,1118,22,23,26,79,80,81,82,83,84,],1);
+a([12,1129,1130,],1);
+a([12,1131,1132,1133,1134,1135,1136,1137,],1);
+a([12,1117,1118,],2);
+a([14,22,23,26,79,80,81,82,83,84,],1);
+a([12,1138,1139,1140,],1);
+a([13,1117,1118,22,23,79,],1);
+a([11,1141,1117,1118,22,23,26,79,80,81,],1);
+a([11,1142,],1);
+a([8,1143,196,197,331,],1);
+a([3,1144,1145,1146,1147,],1);
+a([3,1148,],1);
+a([4,1149,1150,1151,],1);
+a([5,1152,1153,1154,1155,1156,],1);
+a([8,1157,1158,1159,1160,],5);
+a([11,1161,],1);
+a([7,1142,],1);
+a([6,1162,],1);
+a([5,1163,1164,],1);
+a([5,313,],1);
+a([4,1165,1166,1155,1156,],1);
+a([6,1136,1167,],1);
+a([7,1137,],35);
+a([8,1168,],57);
+a([9,45,46,47,48,49,50,51,52,53,54,84,],1);
+a([9,1169,],7);
+a([9,1170,],3);
+a([10,1171,],1);
+a([8,531,],1);
+a([9,45,46,47,48,49,50,51,56,57,58,59,238,],1);
+a([8,1169,],1);
+a([7,1168,],18);
+a([8,45,46,47,48,49,50,51,232,233,],1);
+a([8,1169,],3);
+a([7,1172,],5);
+a([7,1173,21,],2);
+a([8,1174,],1);
+a([7,999,],2);
+a([8,22,23,24,],2);
+a([10,26,79,80,81,82,83,84,],1);
+a([7,1156,],1);
+a([5,1175,1176,1177,],1);
+a([8,1168,],40);
+a([9,45,46,47,48,49,],1);
+a([14,50,51,328,101,102,],1);
+a([9,1169,],4);
+a([10,1178,1179,1180,1181,1182,1183,1184,],1);
+a([9,1185,1186,],1);
+a([10,1171,],3);
+a([8,531,],1);
+a([8,1169,],1);
+a([8,1187,],1);
+a([6,1188,1189,1190,1191,1192,1193,],6);
+a([12,1194,],5);
+a([13,1170,],1);
+a([12,1168,],20);
+a([13,1169,],8);
+a([13,1185,],1);
+a([12,531,],2);
+a([10,1193,],1);
+a([8,1195,1196,],1);
+a([10,1197,],1);
+a([10,1198,1199,1200,1201,1202,1203,1204,1168,],10);
+a([18,45,46,47,],1);
+a([18,1169,],2);
+a([15,1205,],2);
+a([13,1206,],1);
+a([13,1207,1208,1209,],1);
+a([11,1210,],1);
+a([11,1211,1212,1213,1214,1168,],1);
+a([11,1215,1214,1168,],1);
+a([12,1216,],1);
+a([10,1217,1214,],1);
+a([11,1218,1214,1194,45,46,47,261,262,],1);
+a([13,1168,],1);
+a([14,45,46,47,48,49,],1);
+a([10,1211,],1);
+a([9,1219,],1);
+a([7,1220,],1);
+a([8,1221,],1);
+a([5,1222,1153,1223,],4);
+a([8,1224,1199,1200,1201,1225,],1);
+a([12,1202,],3);
+a([13,1203,1204,1194,1169,],1);
+a([15,1168,],14);
+a([16,1169,],4);
+a([15,531,45,46,47,48,49,50,1226,],1);
+a([13,1205,],1);
+a([13,1227,1174,],1);
+a([13,1228,1209,],1);
+a([12,1228,1178,1179,1180,1181,1182,1183,1184,],1);
+a([11,1225,],1);
+a([11,1206,],1);
+a([11,1229,],1);
+a([11,1207,],1);
+a([8,18,],1);
+a([4,1230,1153,1231,1232,],1);
+a([7,1233,],2);
+a([5,1221,],1);
+a([5,1234,1155,1156,1235,],1);
+a([4,1236,1237,],4);
+a([6,1238,1239,],4);
+a([7,1240,],2);
+a([4,1118,22,23,26,79,80,81,1241,],1);
+a([4,1242,],9);
+a([5,1243,1155,1235,],1);
+a([7,1156,],1);
+a([5,1244,],1);
+
+
+console.timeEnd("data exec time");
+
+
+function makeTreeNode() {
+  if (isDiffgraph)
+    return {self_samples_a: 0, self_samples_b: 0, self_delta: 0,
+            total_samples_a: 0, total_samples_b: 0, total_delta: 0,
+            delta_abs: 0, children: {}};
+  else
+    return {self: 0, total: 0, children: {}};
+}
+
+function getChildNode(node, childTitle) {
+  var children = node.children;
+  var child = children[childTitle];
+  if (child == undefined) {
+    child = makeTreeNode();
+    children[childTitle] = child;
+  }
+  return child;
+}
+
+function parseStacksToTreeSimple(stacks, treeRoot) {
+  console.time("parseStacksToTreeSimple");
+  var depth = 0;
+  for (var i = 0, len = stacks.length; i < len; i++) {
+    var stack = stacks[i];
+    var stackframes = stack.stackStr.split(";");
+    var stackLen = stackframes.length;
+    depth = Math.max(depth, stackLen);
+    var node = treeRoot;
+    if (reverseGraph) {
+      for (var j = stackLen-1; j >= 0; j--) {
+        var stackframe = stackframes[j];
+        node.total += stack.samples;
+        node = getChildNode(node, stackframe);
+      }
+    } else {
+      for (var j = 0; j < stackLen; j++) {
+        var stackframe = stackframes[j];
+        node.total += stack.samples;
+        node = getChildNode(node, stackframe);
+      }
+    }
+    node.total += stack.samples;
+    node.self += stack.samples;
+  }
+  console.timeEnd("parseStacksToTreeSimple");
+  return depth;
+}
+
+function parseStacksToTreeDiffgraph(stacks, treeRoot) {
+  console.time("parseStacksToTreeDiffgraph");
+  var depth = 0;
+
+  for (var i = 0, len = stacks.length; i < len; i++) {
+    var stack = stacks[i];
+    var stackframes = stack.stackStr.split(";");
+    var stackLen = stackframes.length;
+    depth = Math.max(depth, stackLen);
+    var node = treeRoot;
+
+    var samplesA = stack.samples_a;
+    var samplesB = stack.samples_b;
+    if (normalizeDiff) samplesB = Math.round(samplesB * b_scale_factor);
+    var delta = samplesB - samplesA;
+
+
+    if (reverseGraph) {
+      for (var j = stackLen-1; j >= 0; j--) {
+        var stackframe = stackframes[j];
+        node.total_samples_a += samplesA;
+        node.total_samples_b += samplesB;
+        node.total_delta += delta;
+        node.delta_abs += Math.abs(delta);
+        node = getChildNode(node, stackframe);
+      }
+    } else {
+      for (var j = 0; j < stackLen; j++) {
+        var stackframe = stackframes[j];
+        node.total_samples_a += samplesA;
+        node.total_samples_b += samplesB;
+        node.total_delta += delta;
+        node.delta_abs += Math.abs(delta);
+        node = getChildNode(node, stackframe);
+      }
+    }
+    node.self_samples_a += samplesA;
+    node.self_samples_b += samplesB;
+    node.self_delta += delta;
+    node.total_samples_a += samplesA;
+    node.total_samples_b += samplesB;
+    node.total_delta += delta;
+    node.delta_abs += Math.abs(delta);
+  }
+  console.timeEnd("parseStacksToTreeDiffgraph");
+  return depth;
+}
+
+function parseStacksToTree(stacks, treeRoot) {
+  if (isDiffgraph)
+    return parseStacksToTreeDiffgraph(stacks, treeRoot);
+  else
+    return parseStacksToTreeSimple(stacks, treeRoot);
+}
+
+const palette = {
+  green: "#50e150",
+  aqua: "#50bebe",
+  orange: "#e17d00",
+  yellow: "#c8c83c",
+  red: "#e15a5a",
+  clojure_green: "#91dc51",
+  clojure_blue: "#8fb5fe",
+};
+
+function getColor(title) {
+  if (title.endsWith("_[j]")) {
+    return palette.green;
+  } else if (title.endsWith("_[i]")) {
+    return palette.aqua;
+  } else if (title.endsWith("_[k]")) {
+    return palette.orange;
+  } else if (title.includes("::") || title.startsWith("-[") || title.startsWith("+[")) {
+    return palette.yellow;
+  } else if (title.includes("/")) { // Clojure (will only work after unmunging)
+    return palette.clojure_blue;
+  } else if (title.includes(".")) { // Java (if it has a dot and is not Clojure)
+    return palette.clojure_green;
+  } else return palette.red;
+}
+
+function decToHex(n) {
+  var hex = n.toString(16);
+  return hex.length == 1 ? "0" + hex : hex;
+}
+
+function getDiffColor(isRed, intensity) {
+  return "hsl(" + ((isRed) ? 0 : 220) + ",100%," + Math.round(90 - intensity * 30) + "%)";
+  // return "hsl(" + ((isRed) ? 0 : 220) + "," + Math.round(100 * intensity) + "%, 60%)";
+}
+
+function scaleColorMap(colorMap, intensity) {
+  return '#' + decToHex(intensity * colorMap.red) +
+    decToHex(intensity * colorMap.green) + decToHex(intensity * colorMap.blue);
+}
+
+var stacks, tree, levels, depth;
+
+var smallestPixelsPerSample, minPixelsPerFrame = 0.25, minSamplesToShow;
+
+function generateLevelsSimple(levels, node, title, level, x, minSamplesToShow) {
+  var left = x;
+
+  levels[level] = levels[level] || [];
+  if (node.total >= minSamplesToShow) {
+    levels[level].push({left: left, width: node.total, color: getColor(title),
+                        title: title});
+
+    left += node.self;
+
+    let children = Object.entries(node.children);
+    if (sortByNameRadio.checked)
+      children.sort((a, b) => a[0].localeCompare(b[0]));
+    else
+      children.sort((a, b) => b[1].total - a[1].total);
+
+    for (let i in children) {
+      let title = children[i][0];
+      let child = children[i][1];
+      generateLevelsSimple(levels, child, title, level+1, left, minSamplesToShow);
+      left += child.total;
+    }
+  }
+}
+
+function generateLevelsDiffgraph(levels, node, title, level, x, minSamplesToShow) {
+  var left = x;
+
+  levels[level] = levels[level] || [];
+  if (node.delta_abs >= minSamplesToShow) {
+    var change = (node.total_samples_a == 0) ? 1.0 : node.total_delta / node.total_samples_a;
+    var color = getDiffColor((node.total_delta > 0), Math.min(Math.abs(change), 1.0));
+    levels[level].push({left: left, width: node.delta_abs,
+                        self_samples_a: node.self_samples_a,
+                        self_samples_b: node.self_samples_b,
+                        self_delta: node.self_delta,
+                        total_samples_a: node.total_samples_a,
+                        total_samples_b: node.total_samples_b,
+                        total_delta: node.total_delta,
+                        color: color,
+                        title: title});
+
+    left += Math.abs(node.self_delta);
+
+    let children = Object.entries(node.children);
+    if (sortByNameRadio.checked)
+      children.sort((a, b) => a[0].localeCompare(b[0]));
+    else
+      children.sort((a, b) => b[1].delta_abs - a[1].delta_abs);
+
+    for (let i in children) {
+      let title = children[i][0];
+      let child = children[i][1];
+      generateLevelsDiffgraph(levels, child, title, level+1, left, minSamplesToShow);
+      left += child.delta_abs;
+    }
+  }
+}
+
+function generateLevels(levels, node, title, level, x, minSamplesToShow) {
+  if (isDiffgraph)
+    generateLevelsDiffgraph(levels, node, title, level, x, minSamplesToShow);
+  else
+    generateLevelsSimple(levels, node, title, level, x, minSamplesToShow);
+}
+
+function refreshData() {
+  if (isDiffgraph && normalizeDiff)
+    b_scale_factor = totalSamplesA / totalSamplesB;
+
+  stacks = transformStacks();
+
+  tree = makeTreeNode();
+
+  depth = parseStacksToTree(stacks, tree);
+  smallestPixelsPerSample = canvasWidth / (tree.total || tree.delta_abs);
+  minSamplesToShow = minPixelsPerFrame / smallestPixelsPerSample;
+
+  levels = [];
+  generateLevels(levels, tree, "all", 0, 0, minSamplesToShow);
+  depth = levels.length;
+}
+
+refreshData();
+
+var canvasHeight;
+
+function initCanvas() {
+  canvasHeight = (depth + 1) * 16;
+  canvas.style.width = canvasWidth + 'px';
+  canvas.width = canvasWidth * (devicePixelRatio || 1);
+  canvas.height = canvasHeight * (devicePixelRatio || 1);
+  if (devicePixelRatio) c.scale(devicePixelRatio, devicePixelRatio);
+  c.font = document.body.style.font;
+}
+
+initCanvas();
+isNormalizedDiv.style.display = isDiffgraph ? 'inherit' : 'none';
+if (graphTitle == "")
+  titleDiv.style.display = 'none';
+else
+  graphTitleSpan.innerText = graphTitle;
+
+
+var highlightPattern = null, currentRootFrame, currentRootLevel, currentFrameUnderCursor, currentLevelUnderCursor, px;
+
+function render(newRootFrame, newLevel) {
+  console.time("render");
+  // Background
+  var gradient = c.createLinearGradient(0, 0, 0, canvasHeight);
+  gradient.addColorStop(0.05, "#eeeeee");
+  gradient.addColorStop(0.95, "#eeeeb0");
+  c.fillStyle = gradient;
+  c.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  currentRootFrame = newRootFrame || levels[0][0];
+  currentRootLevel = newLevel || 0;
+  px = canvasWidth / currentRootFrame.width;
+
+  const marked = [];
+
+  function mark(f) {
+    return marked[f.left] >= f.width || (marked[f.left] = f.width);
+  }
+
+  function totalMarked() {
+    let total = 0;
+    let left = 0;
+    for (let x in marked) {
+      if (+x >= left) {
+        total += marked[x];
+        left = +x + marked[x];
+      }
+    }
+    return total;
+  }
+
+  const x0 = currentRootFrame.left;
+  const x1 = x0 + currentRootFrame.width;
+
+  function drawFrame(f, y, alpha) {
+    if (f.left < x1 && f.left + f.width > x0) {
+      c.fillStyle = highlightPattern && f.title.match(highlightPattern) && mark(f) ? '#ee00ee' : f.color;
+      c.fillRect((f.left - x0) * px, y, f.width * px, 15);
+
+      if (f.width * px >= 21) {
+        const chars = Math.floor(f.width * px / 7);
+        const title = f.title.length <= chars ? f.title : f.title.substring(0, chars - 2) + '..';
+        c.fillStyle = '#000000';
+        c.fillText(title, Math.max(f.left - x0, 0) * px + 3, y + 12, f.width * px - 6);
+      }
+
+      if (alpha) {
+        c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        c.fillRect((f.left - x0) * px, y, f.width * px, 15);
+      }
+    }
+  }
+
+  for (let h = 0; h < levels.length; h++) {
+    const y = reverseGraph ? h * 16 : canvasHeight - (h + 1) * 16;
+    const frames = levels[h];
+    for (let i = 0; i < frames.length; i++) {
+      if (frames[i].width >= minSamplesToShow)
+        drawFrame(frames[i], y, h < currentRootLevel);
+    }
+  }
+
+  if (highlightPattern != null) {
+    matchContainer.style.display = 'inherit';
+    matchedLabel.textContent = pct(totalMarked(), currentRootFrame.width) + '%';
+  } else
+    matchContainer.style.display = 'none';
+  console.timeEnd("render");
+}
+
+render();
+
+function round2dig(n) {
+  return Math.round(n * 100) / 100;
+}
+
+function ratioToPct(n) {
+  return ((n > 0) ? "+" : "") + (n * 100).toFixed(2) + "%";
+}
+
+function findFrame(frames, x) {
+  let left = 0;
+  let right = frames.length - 1;
+
+  while (left <= right) {
+    const mid = (left + right) >>> 1;
+    const f = frames[mid];
+
+    if (f.left > x) {
+      right = mid - 1;
+    } else if (f.left + f.width <= x) {
+      left = mid + 1;
+    } else {
+      return f;
+    }
+  }
+
+  if (frames[left] && (frames[left].left - x) * px < 0.5) return frames[left];
+  if (frames[right] && (x - (frames[right].left + frames[right].width)) * px < 0.5) return frames[right];
+
+  return null;
+}
+
+canvas.onmousemove = function() {
+  const h = Math.floor((reverseGraph ? event.offsetY : (canvasHeight - event.offsetY)) / 16);
+  currentLevelUnderCursor = h;
+  if (h >= 0 && h < levels.length) {
+    const f = findFrame(levels[h], event.offsetX / px + currentRootFrame.left);
+    currentFrameUnderCursor = f;
+    if (f && f.width >= minSamplesToShow) {
+      hl.style.left = (Math.max(f.left - currentRootFrame.left, 0) * px + canvas.offsetLeft) + 'px';
+      hl.style.width = (Math.min(f.width, currentRootFrame.width) * px) + 'px';
+      hl.style.top = ((reverseGraph ? h * 16 : canvasHeight - (h + 1) * 16) + canvas.offsetTop) + 'px';
+      // hl.firstChild.textContent = f.title;
+      hl.style.display = 'block';
+      if (isDiffgraph) {
+        var rel_change = (f.total_samples_a == 0) ? 1.0 : f.total_delta / f.total_samples_a;
+        var total_change = f.total_delta / tree.total_samples_a;
+        canvas.title = `${f.title}\n(${samples(f.total_delta, true)}, ${ratioToPct(rel_change)} self, ${ratioToPct(total_change)} total)`;
+        // , self_samples_a: ${f.self_samples_a}, self_samples_b: ${f.self_samples_b},  self_delta: ${f.self_delta},  total_samples_a: ${f.total_samples_a},  total_samples_b: ${f.total_samples_b}, total_delta: ${f.total_delta})`;
+      } else
+        canvas.title = f.title + '\n(' + samples(f.width) + ', ' + pct(f.width, levels[0][0].width) + '%)';
+      canvas.style.cursor = 'pointer';
+      status.textContent = 'Function: ' + canvas.title;
+      status.style['max-width'] = (canvas.offsetWidth - 150) + 'px';
+      return;
+    }
+  }
+  canvas.onmouseout();
+}
+
+canvas.onclick = function () {
+  if (currentFrameUnderCursor && currentFrameUnderCursor != currentRootFrame) {
+    render(currentFrameUnderCursor, currentLevelUnderCursor);
+    canvas.onmousemove();
+  }
+}
+
+canvas.onmouseout = function() {
+  hl.style.display = 'none';
+  status.textContent = '\xa0';
+  canvas.title = '';
+  canvas.style.cursor = '';
+  currentLevelUnderCursor = -1;
+  currentFrameUnderCursor = null;
+}
+
+function samples(n, add_plus) {
+  return (add_plus && n > 0 ? "+" : "") + (n === 1 ? '1 sample' : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')) + ' samples';
+}
+
+function pct(a, b) {
+  return a >= b ? '100' : (100 * a / b).toFixed(2);
+}
+
+//// Configuration panel
+
+function highlightApply() {
+  const pattern = highlightInput.value;
+  highlightPattern = (pattern == "") ? null : _stringToMaybeRegex(pattern);
+  render(currentRootFrame, currentRootLevel);
+}
+
+function highlightClear() {
+  highlightPattern = null;
+  render(currentRootFrame, currentRootLevel);
+}
+
+function userTransformsSwap(idx1, idx2) {
+  const swap = userTransforms[idx1];
+  userTransforms[idx1] = userTransforms[idx2];
+  userTransforms[idx2] = swap;
+}
+
+function addNewTransformParameterized(type, what, replacement) {
+  syncTransformsModelWithUI();
+  userTransforms.push(_makeTransform(type, true, what, replacement));
+  redrawTransformsSection();
+}
+
+function addNewTransform() {
+  addNewTransformParameterized(newTransformType.value, "", "");
+}
+
+function deleteTransform(originator) {
+  syncTransformsModelWithUI();
+  userTransforms.splice(originator.internalId, 1);
+  redrawTransformsSection();
+}
+
+function cloneTransform(originator) {
+  syncTransformsModelWithUI();
+  const idx = originator.internalId;
+  userTransforms.splice(idx+1, 0, Object.assign({}, userTransforms[idx]));
+  redrawTransformsSection();
+}
+
+function moveTransformUp(originator) {
+  const idx = originator.internalId;
+  if (idx == 0) return;
+  syncTransformsModelWithUI();
+  userTransformsSwap(idx-1, idx);
+  redrawTransformsSection();
+}
+
+function moveTransformDown(originator) {
+  const idx = originator.internalId;
+  if (idx == userTransforms.length-1) return;
+  syncTransformsModelWithUI();
+  userTransformsSwap(idx, idx+1);
+  redrawTransformsSection();
+}
+
+function refreshAfterEnabledToggle() {
+  syncTransformsModelWithUI();
+  redrawTransformsSection();
+}
+
+function oneByClass(container, classname) {
+  return container.getElementsByClassName(classname)[0];
+}
+
+function syncTransformsModelWithUI() {
+  for (var i = 0; i < transformsContainer.children.length; i++) {
+    const el = transformsContainer.children[i];
+    const model = userTransforms[i];
+    userTransforms[i] =
+      _makeTransform(model.type, oneByClass(el, 'chkEnabled').checked,
+                     oneByClass(el, 'what').value,
+                     model.type == 'replace' ? oneByClass(el, 'replacement').value : null);
+  }
+}
+
+function redrawTransformsSection() {
+  transformsContainer.innerHTML = "";
+  for (var i = 0; i < userTransforms.length; i++) {
+    const transform = userTransforms[i];
+    var newEl = (transform.type == 'replace') ?
+        transformReplaceTemplate.cloneNode(true) :
+        transformFilterTemplate.cloneNode(true);
+    newEl.style = '';
+    newEl.internalId = i;
+
+    const what = transform.what;
+    if (typeof(what) == 'string')
+      oneByClass(newEl, 'what').value = what;
+    else
+      oneByClass(newEl, 'what').value = what.toString().match(/^(\/.+\/)g?$/)[1];
+
+    if (transform.type == 'replace')
+      oneByClass(newEl, 'replacement').value = transform.replacement;
+    else if (transform.type == 'remove')
+      oneByClass(newEl, 'label').textContent = "Remove:";
+    oneByClass(newEl, 'chkEnabled').checked = transform.enabled;
+
+    oneByClass(newEl, 'chkEnabled').internalId = i;
+    oneByClass(newEl, 'btnMoveUp').internalId = i;
+    oneByClass(newEl, 'btnMoveDown').internalId = i;
+    oneByClass(newEl, 'btnClone').internalId = i;
+    oneByClass(newEl, 'btnDelete').internalId = i;
+    transformsContainer.appendChild(newEl);
+  }
+}
+
+redrawTransformsSection();
+
+function scrollToTopOrBottom() {
+  window.scrollTo(0, reverseGraph ? 0 : document.body.scrollHeight);
+}
+
+scrollToTopOrBottom();
+
+function applyConfiguration() {
+  console.time("apply config");
+  minPixelsPerFrame = minFrameWidthInPx.value || 0.25;
+  normalizeDiff = isNormalized.checked;
+  let reverseChanged = (reverseGraph != isReversedInput.checked);
+  reverseGraph = isReversedInput.checked;
+  syncTransformsModelWithUI();
+  refreshData();
+  initCanvas();
+  render();
+  if (reverseChanged)
+    scrollToTopOrBottom();
+  console.timeEnd("apply config");
+}
+
+function toggleSidebarVisibility() {
+  sidebarVisible = !sidebarVisible;
+  updateSidebarState();
+  applyConfiguration();
+}
+
+
+// Context menu implementation was taken from https://github.com/heapoverride/context-js
+// and modified to suit our needs. Licensed Under MIT License, author: @UnrealSec
+class ContextMenu {
+  constructor(container, items) {
+    this.container = container;
+    this.dom = null;
+    this.shown = false;
+    this.root = true;
+    this.items = items;
+    this._onclick = e => {
+      if (this.dom && e.target != this.dom &&
+          e.target.parentElement != this.dom &&
+          !e.target.classList.contains('item') &&
+          !e.target.parentElement.classList.contains('item')) {
+        this.hide();
+      }
+    };
+    this._oncontextmenu = e => {
+      if (e.target != this.dom &&
+          e.target.parentElement != this.dom &&
+          !e.target.classList.contains('item') &&
+          !e.target.parentElement.classList.contains('item') &&
+          currentFrameUnderCursor) {
+        e.preventDefault();
+        this.hide();
+        this.frame = currentFrameUnderCursor;
+        this.show(e.clientX, e.clientY);
+      }
+    };
+    this._onblur = e => { this.hide(); };
+  }
+  getMenuDom() {
+    const menu = document.createElement('div');
+    menu.classList.add('context');
+    for (const item of this.items)
+      menu.appendChild(this.itemToDomEl(item));
+    return menu;
+  }
+  itemToDomEl(data) {
+    const item = document.createElement('div');
+    if (data === null) {
+      item.classList = 'separator';
+      return item;
+    }
+    if (data.hasOwnProperty('color') && /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(data.color.toString())) {
+      item.style.cssText = `color: ${data.color}`;
+    }
+    item.classList.add('item');
+
+    const label = document.createElement('span');
+    label.classList = 'label';
+    label.innerText = data.hasOwnProperty('text') ? data['text'].toString() : '';
+    item.appendChild(label);
+
+    if (data.hasOwnProperty('disabled') && data['disabled'])
+      item.classList.add('disabled');
+    else
+      item.classList.add('enabled');
+
+    item.addEventListener('click', e => {
+      if (item.classList.contains('disabled')) return;
+      if (data.hasOwnProperty('onclick') && typeof data['onclick'] === 'function') {
+        const event = {handled: false, item: item, label: label, items: this.items, data: data};
+        data['onclick'](event, this.frame);
+        if (!event.handled)
+          this.hide();
+      } else {
+        this.hide();
+      }
+    });
+    return item;
+  }
+  hide() {
+    if (this.dom && this.shown) {
+      this.shown = false;
+      this.container.removeChild(this.dom);
+    }
+  }
+  show(x, y) {
+    this.dom = this.getMenuDom();
+    this.dom.style.visibility = 'hidden';
+    this.dom.style.left = `${x}px`;
+    this.dom.style.top = `${y}px`;
+    this.shown = true;
+    this.container.appendChild(this.dom);
+
+    if (this.dom.offsetWidth + x > document.body.clientWidth)
+      this.dom.style.left = `${x-this.dom.offsetWidth}px`;
+    if (this.dom.offsetHeight + y > document.body.clientHeight)
+      this.dom.style.top = `${y-this.dom.offsetHeight}px`;
+    this.dom.style.visibility = 'visible';
+  }
+
+  install() {
+    this.container.addEventListener('contextmenu', this._oncontextmenu, false);
+    this.container.addEventListener('keydown', this._oncontextmenu_keydown);
+    this.container.addEventListener('click', this._onclick);
+    window.addEventListener('blur', this._onblur);
+  }
+}
+
+function escapeRegex(regexString) {
+  return regexString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function menuHighlight(e, frame) {
+  let rx = escapeRegex(frame.title);
+  highlightInput.value = "/^" + rx + "$/";
+  highlightApply();
+}
+
+function menuCopyAsText(e, frame) {
+  navigator.clipboard.writeText(frame.title);
+}
+
+function menuCopyAsRegex(e, frame) {
+  let rx = escapeRegex(frame.title);
+  navigator.clipboard.writeText(rx);
+}
+
+function menuFilterContaining(e, frame) {
+  addNewTransformParameterized('filter', ";" + frame.title + ";", "");
+  applyConfiguration();
+}
+
+function menuRemoveContaining(e, frame) {
+  addNewTransformParameterized('remove', ";" + frame.title + ";", "");
+  applyConfiguration();
+}
+
+function menuHideFramesAbove(e, frame) {
+  let rx = escapeRegex(frame.title);
+  addNewTransformParameterized('replace', "/(;" + rx + ";).*/", "$1");
+  applyConfiguration();
+}
+
+function menuHideFramesBelow(e, frame) {
+  let rx = escapeRegex(frame.title);
+  addNewTransformParameterized('replace', "/.+(" + rx + ";)/", ";$1");
+  applyConfiguration();
+}
+
+function menuCollapseRecursive(e, frame) {
+  let rx = escapeRegex(frame.title);
+  addNewTransformParameterized('replace', "/;(" + rx + ";)+/", ";$1");
+  applyConfiguration();
+}
+
+function menuCollapseRecursiveWithGaps(e, frame) {
+  let rx = escapeRegex(frame.title);
+  addNewTransformParameterized('replace', "/;(" + rx + ";).*\\1/", ";$1");
+  applyConfiguration();
+}
+
+const ctxMenuData = [
+  {text: 'Highlight', onclick: menuHighlight },
+  {text: 'Copy as text', onclick: menuCopyAsText },
+  {text: 'Copy as regex', onclick: menuCopyAsRegex },
+  null,
+  {text: 'Filter containing stacks', onclick: menuFilterContaining },
+  {text: 'Remove containing stacks', onclick: menuRemoveContaining },
+  {text: 'Hide frames above', onclick: menuHideFramesAbove },
+  {text: 'Hide frames below', onclick: menuHideFramesBelow },
+  null,
+  {text: 'Collapse recursive', onclick: menuCollapseRecursive },
+  {text: 'Collapse recursive (with gaps)', onclick: menuCollapseRecursiveWithGaps},
+];
+
+const ctxMenu = new ContextMenu(document.getElementById('canvasDiv'), ctxMenuData);
+ctxMenu.install();
+menuHighlight(null, {"title": "clojure.lang.KeywordLookupSite$1.get"});
+menuCollapseRecursiveWithGaps(null, {"title": "clojox.interpreter.Call.evaluate"});
+
+// Remove GC stacks
+menuRemoveContaining(null, {"title": "start_thread"});
+menuRemoveContaining(null, {"title": "[not_walkable_Java]"});
+    </script>
+  </body>
+</html>
