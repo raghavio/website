@@ -1,6 +1,7 @@
 <script async defer src="https://www.recurse-scout.com/loader.js?t=21820bc9c687dc992c04bdcdcc68b0d3"></script>
 
-{{ if eq .File.BaseFileName "desk" }}
+{{with .File }}
+{{ if eq .BaseFileName "desk" }}
 <script src="/imageMapResizer.min.js"></script>
 <script>
     const deskImage = document.getElementById('deskImage');
@@ -43,4 +44,5 @@
         });
     }
 </script>
+{{end}}
 {{end}}
