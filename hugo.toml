@@ -31,3 +31,7 @@ enableEmoji = true
         name = 'raghavsharma@outlook.in'    
 [markup.goldmark.renderer]
 unsafe = true
+[markup]
+  [markup.highlight]
+    style = "perldoc"  # Choose your preferred style
+
