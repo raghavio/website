@@ -19,6 +19,7 @@ In this post, I'll take you through my journey of creating *Clojox*, starting wi
 
 ## Implementation details
 
+
 I began the implementation in Java, just like the book, but ended up doing it in a functional style in Clojure. After just writing a little bit of Java, I realized that life is too short to be willingly writing Java. Implementing it in the same language as in the book also makes it less challenging. The urge to simply copy-paste and not use your brain takes over.
 
 Why Clojure? I knew it already, I love it — it's concise, elegant and powerful. As a Lisp dialect running on the JVM, Clojure offers Java interoperability. Which meant I could use some of the code I wrote in Java without reimplementing it. A win-win.
@@ -62,7 +63,7 @@ The core of the interpreter revolves around three main concepts:
 
 ### 1. Scanner
 
-The Scanner code is written in Java and the implementation is near identical as the book. The scanner converts the raw source code into a sequence of tokens, which are then passed to the parser.
+The Scanner code is written in Java and the implementation is near identical as the book. I used some of the new Java features like `record`. The scanner converts the raw source code into a sequence of tokens, which are then passed to the parser.
 
 The tokens for the code string `var a = 10 - 20;`:
 
@@ -129,7 +130,7 @@ The interpreter, the heart of the language, consists of several components. Let'
 The initial implementation used a [parent-pointer-tree](https://en.wikipedia.org/wiki/Parent_pointer_tree) data structure just like the book. The difference is, in the book, the entire scope block is a mutable reference. This means if I were to update a variable, it will get reflected to statements (closures) that were executed before this update. That would make sense in dynamic scoping but not in static (lexical) scoping [^2].
 
 Consider this example:
-```javascript
+```kotlin
 var a = "global";
 {
   fun showA() {
@@ -204,8 +205,7 @@ We implement the above protocol for user-defined functions:
 
 #### c. Native Functions
 
-This is to implement built-in functions for Lox, such as `clock()`, by again implementing the `ClojoxCallable` protocol.
-
+This is to implement built-in functions for Lox, such as `clock()`, by again implementing the `ClojoxCallable` protocol. The `reify` macro is used to create an anonymous implementation of our protocol. 
 ```clojure
 (def clock
   (reify ClojoxCallable
@@ -220,7 +220,9 @@ This is to implement built-in functions for Lox, such as `clock()`, by again imp
 
 Clojure has stellar support for expression problem. Instead of visitor pattern, there's multimethods and Protocols. I initially started with multimethods for interpreting the ASTs.
 
-The `evaluate` multimethod dispatches based on the AST node type:
+>Clojure supports sophisticated runtime polymorphism through a multimethod system that supports dispatching on types, values, attributes and metadata of, and relationships between, one or more arguments.
+
+In our case, the `evaluate` multimethod dispatches based on the AST node type:
 
 Here's an example of the interpretation of the `print` statement:
 
@@ -252,10 +254,60 @@ Here's an example of the interpretation of the `print` statement:
 
 The dispatch function returns a list containing the value returned (`nil` for the print method) and the environment map.
 
-### 5. Error messages
-<!-- talk about error message handling -->
+### Grammar addition
 
-### Main Entry Point (`core.clj`)
+Because of the way we implemented our environment, we broke mutual recursion. Consider this code example:
+
+```kotlin
+fun isOdd(n) {
+  if (n == 0) return false;
+  return isEven(n - 1);
+}
+
+fun isEven(n) {
+  if (n == 0) return true;
+  return isOdd(n - 1);
+}
+```
+
+The `isEven()` function isn't defined yet when we are looking at the body of `isOdd()` where it's called. If we define `isEven()` before, same problem persists. This form of recursion is called mutual recursion. This might seem a fuckall way to find if a number is even or odd, and it is too, but mutual recursion is fundamental to functional programming. It is heavily used in recursive descent parsers, the same kind we have used for this language.
+
+Why does this not work for our implementation? 
+
+Because our environment is an immutable map. `isOdd()`'s closure does not contain any reference to `isEven`, it won't get reflected there even if it gets defined later. A closure is a set of symbols in an environment that closes over a function. [No, it doesn't mean a function that contains another function](https://stackoverflow.com/a/36878651).
+
+Okay, how to solve for it then? It's crucial so we've got to figure something out.
+
+I took inspiration from how [Clojure handles it](https://clojuredocs.org/clojure.core/declare) by making *forward declarations* and added a `declare` keyword. You declare the name before it's fully defined.
+
+```kotlin
+declare isEven;
+
+fun isOdd(n) {
+...
+```
+
+By doing this, we have defined `isEven` in outer scope and it is now part of `isOdd()`'s closure. This is how the environment will look now at the time `isOdd` is defined. The value of it is `nil`, but that's all right.
+
+```clojure
+{:bindings {clock #atom[...$reify__320], isEven #atom[nil]}, :parent nil}
+```
+
+Once we define the `isEven` function. Its value gets re-assigned and the earlier environment gets updated to this.
+
+```clojure
+{:bindings {clock #atom[...$reify__320], isEven #atom[#clojox.function.Function{...}]}, :parent nil}
+```
+
+It wasn't necessary to add a new syntax for this declaration. We are simply creating an empty variable. We could've also done
+
+``` kotlin
+var isEven;
+```
+
+But, why not ¯\_(ツ)_/¯.
+
+### Main Entry Point
 
 This file ties everything together, providing the main entry point for the interpreter:
 
@@ -269,12 +321,11 @@ This file ties everything together, providing the main entry point for the inter
 
 This structure allows Clojox to read Lox source code, tokenize it using the Java scanner, parse it into an AST, and then interpret that AST to execute the program.
 
-The initial implementation, while functional, had significant performance issues, particularly with the deep nesting of environments and the use of Clojure's more dynamic features like multimethods. These issues set the stage for our optimization journey, which we'll explore in the following sections.
+The initial implementation, while functional, had significant performance issues. These issues set the stage for the optimization journey, which we'll explore in the following sections.
 
 ## Performance Challenges
 
-
-With the initial implementation complete, I was excited to run some benchmarks. I chose to use the calculation of the 33rd Fibonacci number as my test case, as it's computationally intensive enough to reveal performance issues.
+With the initial implementation complete, I was excited to run some benchmarks. I chose to calculate the 33rd Fibonacci number as my test case, as it's computationally intensive enough to reveal performance issues.
 
 ```kotlin
 fun fib(n) {
@@ -289,28 +340,40 @@ print clock() - before;
 The results were...sobering:
 
 - jlox (the Java implementation from the book): 2.5 seconds
-- Initial Clojox: 21 minutes
+- Clojox: 21 minutes
 
-Clearly, there was significant room for improvement. It was time to dive into optimizations.
+Clearly, something was terribly wrong with my implementation. It was time to dive into optimizations.
 
 ## Optimization Journey
 
+It was time to profile the code. I'm using [clj-async-profiler](https://github.com/clojure-goes-fast/clj-async-profiler) to create a Flame Graph. The graphs are interactive and embedded in this page via iframe.
+
 <iframe src="/clojox/pre_optimizations_og.html?hide-sidebar=true" style="height:558px;width:100%"></iframe>
 
-### Disabling JVM stacktrace
+This is not very helpful as is. Let's make some adjustments. We will collapse the recursive steps, remove the JVM Garbage Collection stuff you see on the right side, and reverse it to highlight the functions with the highest self time.
+
 <iframe src="/clojox/pre_optimizations.html?hide-sidebar=true" style="height:558px;width:100%"></iframe>
 
-We create a custom exception class with stacktrace disabled.
+This is much better. Let's dig in.
+
+### Disabling JVM stacktrace
+
+I see a lot of things that I didn't directly write in my Clojure code. You can see Stacktraces, Throwable and other JVM related stuff that I'm clueless about. I figured this is related to my `return` statement implementation. To return from a function, we raise an exception to exit the code block and pass control to the outside body.
+
+I ignored a step in the book that talks about implementing a custom exception class to implementing the `return`.
+
 ```java
 public class Return extends RuntimeException {
     public final Object value;
 
     public Return(Object value) {
-        super(null, null, false, false); // Disable stacktrace.
+        super(null, null, false, false); // Disable stacktrace and other functionality.
         this.value = value;
     }
 }
 ```
+
+Here, we are creating custom exception class to be able to raise an exception with no message, no cause, suppression disabled and stack trace disabled.
 
 and change the code to use our new class instead of ex-info.
 
@@ -323,23 +386,20 @@ and change the code to use our new class instead of ex-info.
 + (throw (Return. return-value))))
 ```
 
-
-
-172.3 seconds
-
 <iframe src="/clojox/after_jvm_stacktraces.html?hide-sidebar=true" style="height:638px;width:100%"></iframe>
 
+All the yellow JVM stuff has gone from the graph now. After this trivial change, the execution time got reduced to 172.3 seconds from 1260 seconds. That's massive improvement. Still slow though.
+
 ### Switching to Protocols
-<iframe src="/clojox/protocols.html?hide-sidebar=true" style="height:638px;width:100%"></iframe>
 
-135.75 seconds
+We use multimethods in our interpreter to dispatch based on AST type. Clojure also offers a faster form of polymorphism with Protocols. Protocols are like interfaces in other languages. They dispatch only based on the type of the first argument, which is faster than runtime dispatch of multimethods.
 
-we replace multimethod with protocols. // explain why protocols are performant than multimethod.
+Since we are only working with types, we can switch to Protocols for better performance.
 
 ```clojure
 (defprotocol Evaluate
-  (evaluate [this env]))
-
+  (evaluate [this env])
+)
 (defrecord Print [expression]
   protocols/Evaluate
   (evaluate [_ env]
@@ -347,6 +407,8 @@ we replace multimethod with protocols. // explain why protocols are performant t
       (println (stringify value))
       [nil env])))
 ```
+
+After this change, the program now takes 135.75 seconds.
 
 ### Resolving reflections
 
