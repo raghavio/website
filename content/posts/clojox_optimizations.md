@@ -127,7 +127,7 @@ The interpreter, the heart of the language, consists of several components. Let'
 
 #### a. Environment Management
 
-The initial implementation used a [parent-pointer-tree](https://en.wikipedia.org/wiki/Parent_pointer_tree) data structure just like the book. The difference is, in the book, the entire scope block is a mutable reference. This means if I were to update a variable, it will get reflected to statements (closures) that were executed before this update. That would make sense in dynamic scoping but not in static (lexical) scoping [^2].
+The initial implementation used a [parent-pointer-tree](https://en.wikipedia.org/wiki/Parent_pointer_tree) data structure just like the book. The difference is, in the book, the entire scope block is a mutable reference. This means if I were to update a variable, it will get reflected to statements (closures) that were executed before this update. That would make sense in dynamic scoping but not in static (lexical) scoping.
 
 Consider this example:
 ```kotlin
@@ -422,11 +422,28 @@ we add type hints whereever we used the Token class.
 ```
 
 <iframe src="/clojox/reflections.html?hide-sidebar=true" style="height:494px;width:100%"></iframe>
-19.79 seconds
 
-not bad. running the benchmark doesn't warrant a quick insta doom scroll session anymore.
+The time has now come down to 19.79 seconds. All the `java.lang.reflect` functions are gone now. Not bad. Running the benchmark doesn't warrant a quick insta doom scroll session anymore.
+
+If you notice, I've highlighted the env lookup function. We are going to fix that next.
+
 ### Flattening the Environment
-11.3 seconds
+
+You've seen the nested environment implementation above. After using references as values along with persistent data structures, turns out the nesting isn't required and we can simply flatten our environment.
+
+The lookup function which earlier used to use a loop can now simply do an O(1) fetch.
+
+```clojure
+(defn lookup
+  [env identifier]
+  (if-let [val (get env (.lexeme ^Token identifier))]
+    @val
+    (throw (ex-info (str "Undefined variable '" (.lexeme ^Token identifier) "'.")
+                    {:token identifier}))))
+```
+
+
+Considering the example we saw earlier, this is how the environment values look like now:
 
 ```javascript
 var a = 2; // Env {clock #atom[...$reify__331], a #atom[2.0]}
@@ -440,22 +457,15 @@ print a; => 2
 print a; => 10
 ```
 
-The lookup function which earlier used to use loop can now simply do an O(1) fetch.
-```clojure
-(defn lookup
-  [env identifier]
-  (if-let [val (get env (.lexeme ^Token identifier))]
-    @val
-    (throw (ex-info (str "Undefined variable '" (.lexeme ^Token identifier) "'.")
-                    {:token identifier}))))
-```
-
 <iframe src="/clojox/flat_env.html?hide-sidebar=true" style="height:494px;width:100%"></iframe>
+
+The highlighted function from the last graph has now moved from the second spot to further down.
+
+The program now takes 11.3 seconds to execute.
 
 ### Function call improvements
 
 <iframe src="/clojox/flat_env_reduce_highlight.html?hide-sidebar=true" style="height:494px;width:100%"></iframe>
-
 
 Here's the function call code to create new env from the closure (parent env) and function arguments.
 
@@ -481,9 +491,9 @@ I slightly changed the above code to avoid the computation of adjoined `params-v
 
 <iframe src="/clojox/reduce_improved_2.html?hide-sidebar=true" style="height:494px;width:100%"></iframe>
 
-As we can see, the reduce function that earlier took 31.41% of time, is now reduced to 9.39%.
+As we can see, the reduce function that earlier took 31.41% of time, is now reduced to 9.39%. I can't seem to figure out why such a small change would impact this drastically. I generated these flamegraphs twice and the results were the same. I'll take it though. The program time has not come down to 10.2 seconds.
 
-10.2 seconds
+// add a conclusion to this optimization journey.
 
-[^1]: <!-- Explain about environment leak that is talked about in chapter 11 of the book. -->
-[^2]: <!-- Explain lexical scoping -- >
+## Conclusion
+
