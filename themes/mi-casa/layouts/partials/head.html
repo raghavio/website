@@ -17,3 +17,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jersey+25&family=JetBrains+Mono:wght@100..800&family=Noto+Sans:wght@300&family=Palanquin:wght@300&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 <title>Raghav</title>
+<meta property="og:title" content="{{ .Params.og_title | default .Title }}">
+<meta property="og:description" content="{{ .Params.og_description | default .Description | default .Summary }}">
+<meta property="og:image" content="{{ .Params.og_image | default .Params.featured_image | default .Site.Params.default_og_image }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:type" content="{{ if .IsHome }}website{{ else }}article{{ end }}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@raghavio">
+<meta name="twitter:title" content="{{ .Params.twitter_title | default .Params.og_title | default .Title }}">
+<meta name="twitter:description" content="{{ .Params.twitter_description | default .Params.og_description | default .Description | default .Summary }}">
+<meta name="twitter:image" content="{{ .Params.twitter_image | default .Params.og_image | default .Params.featured_image | default .Site.Params.default_twitter_image }}">
