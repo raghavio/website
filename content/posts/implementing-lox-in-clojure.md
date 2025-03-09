@@ -1,19 +1,17 @@
 ---
-title: "Clojox: Implementing and Optimizing Lox in Clojure"
+title: "Implementing and Optimizing Lox in Clojure"
 date: 2024-08-04T18:25:48+05:30
+og_description: "Discover the journey of implementing and optimizing Lox in Clojure. Learn practical insights on interpreter design, JVM performance enhancements, and language theory inspired by Crafting Interpreters."
 draft: false
 ---
-
-
-#### *This is incomplete and has been sitting in my drafts for a while. I'm publishing it for some accountability to wrap this up quickly.*
 
 ## Introduction
 
 I recently got interested in programming language theory and embarked on an exciting journey: implementing the Lox language from Robert Nystrom's fantastic book [Crafting Interpreters](https://craftinginterpreters.com/). The book contains two parts where you implement the Lox language in two different styles. In the first part, you implement a tree-walk interpreter using all the niceties of a high-level language like Java, *jlox*. In the second part, you implement a bytecode interpreter in C, *clox*.
 
-Lox is a dynamically typed, high-level scripting language with features like variables, control flow, functions, closures, classes and interface. It's designed to be simple enough for educational purposes, yet complex enough to demonstrate real-world language implementation challenges.
+Lox is a dynamically typed, high-level scripting language with features like variables, control flow, functions, closures, classes and interfaces. It's designed to be simple enough for educational purposes, yet complex enough to demonstrate real-world language implementation challenges.
 
-This is a tree-walk interpreter which covers the part 1 of the book. I've skipped classes and interfaces but it can easily be added.
+This is a tree-walk interpreter which covers the part 1 of the book. I've skipped classes and interfaces but they can easily be added.
 
 In this post, I'll take you through my journey of creating *Clojox*, starting with a brief overview of the code, focusing on the performance challenges I faced and the optimizations I applied to speed things up.
 
@@ -24,7 +22,7 @@ I began the implementation in Java, just like the book, but ended up doing it in
 
 Why Clojure? I knew it already, I love it — it's concise, elegant and powerful. As a Lisp dialect running on the JVM, Clojure offers Java interoperability. Which meant I could use some of the code I wrote in Java without reimplementing it. A win-win.
 
-My implementation differs a lot from the jlox implementation in Java. It is a lot simpler codewise and doesn't have the caveats that are mentioned in the book. For example, I don't have a resolver step (Chapter 11) because my environment uses immutable persistent data structures and the resolving isn't mandatory since there's no environment leak[^1].
+My implementation differs a lot from the jlox implementation in Java. It is simpler codewise and doesn't have the caveats that are mentioned in the book. For example, I don't have a resolver step (Chapter 11) because my environment uses immutable persistent data structures and the resolving isn't mandatory since there's no environment leak[^1].
 
 ### Project Structure
 ```
@@ -53,19 +51,19 @@ Here's a high-level overview of the key components:
 1. **Scanner**: I kept the Java implementation from jlox for tokenizing the source code.
 2. **Parser**: Implemented in Clojure, this component takes the tokens from Scanner and produces an Abstract Syntax Tree (AST).
 3. **Interpreter**: This evaluates the AST to execute the Lox program.
-4. **Error messages** Handing of syntax and runtime errors.
+4. **Error messages** Handling of syntax and runtime errors.
 
 The core of the interpreter revolves around three main concepts:
 
-- **Environment Management**: Handling variable scopes and closures.
+- **Environment Management**: Controls variable scopes and closures.
 - **AST Evaluation**: Traversing and executing the parsed syntax tree.
-- **Function Handling**: Managing function calls, returns, and closures.
+- **Function Handling**: Deals with function calls, returns, and closures.
 
 ### 1. Scanner
 
-The Scanner code is written in Java and the implementation is near identical as the book. I used some of the new Java features like `record`. The scanner converts the raw source code into a sequence of tokens, which are then passed to the parser.
+The scanner, written in Java, is nearly identical to the book. I used some of the new Java features like `record`. The scanner changes raw code into a list of tokens for the parser.
 
-The tokens for the code string `var a = 10 - 20;`:
+For the code `var a = 10 - 20;`, the tokens look like this:
 
 ```clojure
 [#object[jlox.Token "VAR var null"] #object[jlox.Token "IDENTIFIER a null"]
@@ -90,7 +88,7 @@ The object includes details like lexeme, token type, and the literal value of th
 
 The parser takes the tokens produced by the scanner and constructs an Abstract Syntax Tree (AST).
 
-The implementation of the recursive descent parser is similar to the book. The only change is I pass around the tokens in a functional manner. I rely heavily on destructuring and passing the remaining set of tokens to the next grammar function.
+The implementation of the recursive descent parser is similar to the book. The only change is I pass around the tokens in a functional manner. I rely heavily on Clojure’s destructuring to send leftover tokens to the next grammar function.
 
 Here's a snippet showing the implementation of `print` statement:
 
@@ -119,7 +117,7 @@ Here's a snippet showing the implementation of `print` statement:
         (recur remaining (conj statements stmt))))))
 ```
 
-Each grammar rule is implemented as a separate function. Grammar function returns a list of length 2, containing a list of remaining tokens that are yet to be processed and the AST map.
+Each grammar rule is its own function, returning two items: remaining tokens that are yet to be processed and the AST map.
 
 ### 3. Interpreter
 
@@ -270,7 +268,7 @@ fun isEven(n) {
 }
 ```
 
-The `isEven()` function isn't defined yet when we are looking at the body of `isOdd()` where it's called. If we define `isEven()` before, same problem persists. This form of recursion is called mutual recursion. This might seem a fuckall way to find if a number is even or odd, and it is too, but mutual recursion is fundamental to functional programming. It is heavily used in recursive descent parsers, the same kind we have used for this language.
+The `isEven()` function isn't defined yet when we are looking at the body of `isOdd()` where it's called. If we define `isEven()` before, same problem persists. This form of recursion is called mutual recursion. This might seem a fuckall way to find if a number is even or odd, and it is, but mutual recursion is fundamental to functional programming. It is heavily used in recursive descent parsers, the same kind we have used for this language.
 
 Why does this not work for our implementation? 
 
@@ -412,7 +410,7 @@ After this change, the program now takes 135.75 seconds.
 
 ### Resolving reflections
 
-We use the Token java class throughout in the codebase. However, we didn't add any type hints and hence the flamegraph shows most of the time is spend in resolving reflections. // explain what reflections mean and why it's slow.
+We use the Token java class throughout in the codebase. However, we didn't add any type hints and hence the flamegraph shows most of the time is spent in resolving reflections. // explain what reflections mean and why it's slow.
 
 we add type hints whereever we used the Token class.
 ```diff
@@ -491,9 +489,12 @@ I slightly changed the above code to avoid the computation of adjoined `params-v
 
 <iframe src="/clojox/reduce_improved_2.html?hide-sidebar=true" style="height:494px;width:100%"></iframe>
 
-As we can see, the reduce function that earlier took 31.41% of time, is now reduced to 9.39%. I can't seem to figure out why such a small change would impact this drastically. I generated these flamegraphs twice and the results were the same. I'll take it though. The program time has not come down to 10.2 seconds.
-
-// add a conclusion to this optimization journey.
+As we can see, the reduce function that earlier took 31.41% of time, is now reduced to 9.39%. I can't seem to figure out why such a small change would impact this drastically. I generated these flamegraphs twice and the results were the same. I'll take it though. The program time has now come down to 10.2 seconds.
 
 ## Conclusion
 
+Implementing Lox in Clojure has been a rewarding journey. I learned a great deal about programming language mechanics and gained valuable insights into Clojure and JVM performance optimizations.
+
+*Crafting Interpreters* offers a practical introduction to programming language theory. Its hands-on approach and design notes of existing languages demystify building an interpreter while providing a broader perspective on language design. A particularly striking realization for me, even after years of writing Python, was the explanation of implicit variable declaration and the resulting need for the `global` keyword. Illustrating the trade-offs between simplicity and explicitness.
+
+For anyone interested in exploring how languages work beneath the surface, I cannot recommend this book enough!
