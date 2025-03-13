@@ -9,7 +9,7 @@
   --nav-bg-color: #fafafa;
   --nav-link-color: #696969;
   --pre-color: #333;
-  --pre-bg-color: #eed;
+  --pre-bg-color: #fff6d8;
   --bq-color: #000;
   --hr-color: #333;
   --pagination-bg-color: #fafafa;
@@ -22,7 +22,7 @@
 }
 
 section {
-  background: #A3C7BE !important;
+  background: #68bb9885 !important;
 }
 
 aside {
@@ -141,7 +141,7 @@ code,
 pre,
 kbd {
   color: var(--pre-color);
-  background-color: var(--pre-bg-color);
+  background-color: var(--pre-bg-color) !important;
   font-family: "JetBrains Mono", monospace;
   font-size: .9em;
   line-height: 154%
