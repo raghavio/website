@@ -46,6 +46,10 @@ clojox
 │       └── TokenType.java
 ```
 
+The code for this can be found on GitHub:
+
+[https://github.com/raghavio/clojox](https://github.com/raghavio/clojox)
+
 Here's a high-level overview of the key components:
 
 1. **Scanner**: I kept the Java implementation from jlox for tokenizing the source code.
@@ -410,9 +414,9 @@ After this change, the program now takes 135.75 seconds.
 
 ### Resolving reflections
 
-We use the Token java class throughout in the codebase. However, we didn't add any type hints and hence the flamegraph shows most of the time is spent in resolving reflections. // explain what reflections mean and why it's slow.
+We use the Token java class throughout in the codebase. However, we didn't add any type hints and hence the flamegraph shows most of the time is spent in resolving reflections.
 
-we add type hints whereever we used the Token class.
+we add type hints wherever we used the Token class.
 ```diff
 // Code to check if the token is keyword 'or'.
 -(if (= (.type op) TokenType/OR)
