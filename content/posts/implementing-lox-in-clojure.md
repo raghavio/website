@@ -22,7 +22,7 @@ I began the implementation in Java, just like the book, but ended up doing it in
 
 Why Clojure? I knew it already, I love it — it's concise, elegant and powerful. As a Lisp dialect running on the JVM, Clojure offers Java interoperability. Which meant I could use some of the code I wrote in Java without reimplementing it. A win-win.
 
-My implementation differs a lot from the jlox implementation in Java. It is simpler codewise and doesn't have the caveats that are mentioned in the book. For example, I don't have a resolver step (Chapter 11) because my environment uses immutable persistent data structures and the resolving isn't mandatory since there's no environment leak[^1].
+My implementation differs a lot from the jlox implementation in Java. It is simpler codewise and doesn't have the caveats that are mentioned in the book. For example, I don't have a resolver step (Chapter 11) because my environment uses immutable persistent data structures and the resolving isn't mandatory since there's no environment leak.
 
 ### Project Structure
 ```
