@@ -46,3 +46,63 @@
 </script>
 {{end}}
 {{end}}
+
+{{if .IsHome}}
+<script>
+function timeAgo(timestamp) {
+    const now = new Date();
+    const past = new Date(timestamp);
+    const seconds = Math.floor((now - past) / 1000);
+
+    const intervals = [
+        { label: 'year', seconds: 31536000 },
+        { label: 'month', seconds: 2592000 },
+        { label: 'week', seconds: 604800 },
+        { label: 'day', seconds: 86400 },
+        { label: 'hour', seconds: 3600 },
+        { label: 'minute', seconds: 60 }
+    ];
+
+    for (const interval of intervals) {
+        const count = Math.floor(seconds / interval.seconds);
+        if (count >= 1) {
+            return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+        }
+    }
+    return 'just now';
+}
+
+fetch('https://koreader.raghavsharma.workers.dev/books/current')
+    .then(res => res.json())
+    .then(data => {
+        const cover = document.getElementById('book-cover');
+        const title = document.getElementById('book-title');
+        const author = document.getElementById('book-author');
+        const progressFill = document.getElementById('book-progress-fill');
+        const lastRead = document.getElementById('book-last-read');
+        const percent = document.getElementById('book-percent');
+        const bookInfo = document.querySelector('.book-info');
+        const bookFooter = document.querySelector('.book-footer');
+        const progressBar = document.querySelector('.book-progress-bar');
+
+        cover.src = data.cover_url;
+        cover.alt = data.title;
+        title.textContent = data.title;
+        author.textContent = data.author;
+        progressFill.style.width = data.progress_percent + '%';
+        lastRead.textContent = 'Read ' + timeAgo(data.last_read_at);
+        percent.textContent = data.progress_percent + '%';
+
+        // Show the overlay elements
+        bookInfo.style.display = 'block';
+        bookFooter.style.display = 'flex';
+        progressBar.style.display = 'block';
+    })
+    .catch(err => {
+        // Fallback to ceramic cup image
+        const cover = document.getElementById('book-cover');
+        cover.src = '/pictures/cup.webp';
+        cover.alt = 'Ceramic cup made by me';
+    });
+</script>
+{{end}}
