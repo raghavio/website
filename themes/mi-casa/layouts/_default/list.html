@@ -1,12 +1,51 @@
 {{ define "main" }}
 <section>
-    <div class="content">
+    <div class="content blog-listing">
         <h1 class="title" style="margin-top: 0; padding-top: 20px;">Blogs</h1>
         {{ .Content }}
-        {{ range .Pages }}
-        <ul>
-            <li><a href="{{ .Permalink }}">{{ .Title }}</a></li>
-        </ul>
+
+        {{ $pages := .Pages }}
+        {{ $years := slice }}
+        {{ range $pages }}
+            {{ $year := .Date.Format "2006" }}
+            {{ if not (in $years $year) }}
+                {{ $years = $years | append $year }}
+            {{ end }}
+        {{ end }}
+
+        {{ range $year := $years }}
+        <div class="blog-year-group">
+            <h2 class="blog-year">{{ $year }}</h2>
+            <div class="blog-posts">
+                {{ range $pages }}
+                    {{ if eq (.Date.Format "2006") $year }}
+                    <article class="blog-card">
+                        <div class="blog-card-meta">
+                            <time datetime="{{ .Date.Format "2006-01-02" }}">
+                                <span class="blog-date-day">{{ .Date.Format "02" }}</span>
+                                <span class="blog-date-month">{{ .Date.Format "Jan" }}</span>
+                            </time>
+                        </div>
+                        <a href="{{ .Permalink }}" class="blog-card-link">
+                            <div class="blog-card-content">
+                                <h3 class="blog-card-title">{{ .Title }}</h3>
+                                <p class="blog-card-excerpt">
+                                    {{ with .Params.og_description }}
+                                        {{ . }}
+                                    {{ else }}
+                                        {{ .Summary | plainify | htmlUnescape | truncate 150 }}
+                                    {{ end }}
+                                </p>
+                                <div class="blog-card-footer">
+                                    <span class="blog-reading-time">{{ math.Round (div (countwords .Content) 200.0) }} min read</span>
+                                </div>
+                            </div>
+                        </a>
+                    </article>
+                    {{ end }}
+                {{ end }}
+            </div>
+        </div>
         {{ end }}
     </div>
 </section>
