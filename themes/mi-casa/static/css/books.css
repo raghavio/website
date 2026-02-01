@@ -1,0 +1,579 @@
+/* Books Page - Neobrutalist Design */
+
+.books-page {
+  min-height: 100vh;
+  --background-color: #06FFA5;
+}
+
+.books-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+/* Header */
+.books-header {
+  background: #fff;
+  border: 4px solid #000;
+  padding: 2.5rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 8px 8px 0px 0px #000;
+}
+
+.books-title {
+  font-size: 3.5rem;
+  font-weight: 400;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.75rem 0;
+}
+
+.books-subtitle {
+  font-family: monospace;
+  font-size: 1.4rem;
+  color: #000;
+  margin: 0;
+}
+
+/* Quick Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  border: 3px solid #000;
+  padding: 1.5rem;
+  box-shadow: 6px 6px 0px 0px #000;
+}
+
+.stat-card:nth-child(1) { background: #FFD60A; }
+.stat-card:nth-child(2) { background: #FF006E; }
+.stat-card:nth-child(3) { background: #8338EC; }
+.stat-card:nth-child(4) { background: #3A86FF; }
+
+.stat-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.stat-icon {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.5;
+}
+
+.stat-card:nth-child(1) .stat-icon { color: #000; }
+.stat-card:nth-child(2) .stat-icon,
+.stat-card:nth-child(3) .stat-icon,
+.stat-card:nth-child(4) .stat-icon { color: #fff; }
+
+.stat-label {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 700;
+}
+
+.stat-card:nth-child(1) .stat-label { color: #000; }
+.stat-card:nth-child(2) .stat-label,
+.stat-card:nth-child(3) .stat-label,
+.stat-card:nth-child(4) .stat-label { color: #fff; }
+
+.stat-value {
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-card:nth-child(1) .stat-value { color: #000; }
+.stat-card:nth-child(2) .stat-value,
+.stat-card:nth-child(3) .stat-value,
+.stat-card:nth-child(4) .stat-value { color: #fff; }
+
+/* Activity Heatmap Card */
+.heatmap-card {
+  background: #fff;
+  border: 3px solid #000;
+  padding: 1.5rem;
+  box-shadow: 6px 6px 0px 0px #000;
+  margin-bottom: 2.5rem;
+}
+
+.heatmap-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 4px solid #000;
+}
+
+@media (min-width: 768px) {
+  .heatmap-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.heatmap-title {
+  font-size: 2rem;
+  color: #000;
+  text-transform: uppercase;
+  font-weight: 900;
+}
+
+.heatmap-stat {
+  background: #06FFA5;
+  border: 2px solid #000;
+  padding: 0.75rem 1rem;
+  text-align: right;
+  box-shadow: 4px 4px 0px 0px #000;
+}
+
+.heatmap-stat-value {
+  font-size: 2rem;
+  color: #000;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.heatmap-stat-label {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #000;
+  text-transform: uppercase;
+}
+
+/* Heatmap Grid */
+.heatmap-wrapper {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 769px) {
+  .heatmap-wrapper {
+    overflow-x: hidden;
+  }
+}
+
+.heatmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .heatmap-grid {
+    display: inline-flex;
+    width: auto;
+    min-width: max-content;
+  }
+}
+
+.heatmap-months {
+  position: relative;
+  height: 20px;
+  margin-bottom: 4px;
+  margin-left: 48px;
+  width: calc(100% - 48px);
+}
+
+.heatmap-month {
+  font-size: 0.875rem;
+  color: #000;
+  font-weight: 700;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.heatmap-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+  line-height: 1em;
+}
+
+@media (max-width: 768px) {
+  .heatmap-row {
+    width: auto;
+  }
+}
+
+.heatmap-day-label {
+  font-size: 0.875rem;
+  color: #000;
+  font-weight: 700;
+  width: 48px;
+  flex-shrink: 0;
+  text-align: left;
+}
+
+.heatmap-cells {
+  display: flex;
+  flex: 1;
+  gap: 2px;
+}
+
+.heatmap-cells > * {
+  flex: 1;
+  max-width: 14px;
+}
+
+@media (max-width: 768px) {
+  .heatmap-cells {
+    gap: 2px;
+    flex: none;
+  }
+
+  .heatmap-cells > * {
+    flex: none;
+  }
+}
+
+.heatmap-cell {
+  aspect-ratio: 1;
+  border: 2px solid #000;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  max-width: 14px;
+}
+
+@media (max-width: 768px) {
+  .heatmap-cell {
+    width: 12px;
+    flex-shrink: 0;
+  }
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.25);
+  z-index: 10;
+  position: relative;
+}
+
+.heatmap-cell[data-level="0"] { background-color: #f5f8f5; }
+.heatmap-cell[data-level="1"] { background-color: #A5D6A7; }
+.heatmap-cell[data-level="2"] { background-color: #66BB6A; }
+.heatmap-cell[data-level="3"] { background-color: #43A047; }
+.heatmap-cell[data-level="4"] { background-color: #2E7D32; }
+.heatmap-cell[data-level="5"] { background-color: #1B5E20; }
+
+/* Heatmap Legend */
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 1rem;
+}
+
+.heatmap-legend-label {
+  font-size: 0.875rem;
+  color: #000;
+  font-weight: 700;
+  margin: 0 6px;
+}
+
+.heatmap-legend-cell {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #000;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+  .heatmap-legend-cell {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .heatmap-legend-cell {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Books Section */
+.books-section-header {
+  background: #000;
+  color: #fff;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2.5rem;
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0px 0px #FF006E;
+}
+
+.books-section-title {
+  font-size: 1.5rem;
+  color: #fff;
+  text-transform: uppercase;
+  font-weight: 900;
+  margin: 0;
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.7rem;
+}
+
+@media (min-width: 768px) {
+  .books-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .books-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Book Card */
+.book-card {
+  background: #fff;
+  border: 3px solid #000;
+  padding: 1.25rem;
+  transition: transform 0.15s ease;
+}
+
+.book-card:hover {
+  transform: translate(4px, 4px);
+}
+
+.book-card:nth-child(5n+1) { box-shadow: 6px 6px 0px 0px #FF006E; }
+.book-card:nth-child(5n+2) { box-shadow: 6px 6px 0px 0px #3A86FF; }
+.book-card:nth-child(5n+3) { box-shadow: 6px 6px 0px 0px #FFD60A; }
+.book-card:nth-child(5n+4) { box-shadow: 6px 6px 0px 0px #8338EC; }
+.book-card:nth-child(5n+5) { box-shadow: 6px 6px 0px 0px #06FFA5; }
+
+.book-card-top {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Book Cover */
+.book-cover-container {
+  flex-shrink: 0;
+  width: 100px;
+  height: 150px;
+  border: 3px solid #000;
+  overflow: hidden;
+  background: #000;
+}
+
+.book-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.book-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.book-cover-placeholder svg {
+  width: 40px;
+  height: 40px;
+  stroke: #fff;
+}
+
+/* Book Info */
+.book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.book-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.3;
+  margin: 0 0 0.25rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-author {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #000;
+  margin: 0 0 0.5rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Status Badge */
+.book-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.25rem 0.5rem;
+  border: 2px solid #000;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.book-status.queued {
+  background-color: #FFD60A;
+  color: #000;
+}
+
+.book-status.reading {
+  background-color: #3A86FF;
+  color: #fff;
+}
+
+.book-status.finished {
+  background-color: #06FFA5;
+  color: #000;
+}
+
+/* Progress Bar */
+.book-progress-bar {
+  height: 0.75rem;
+  background: #E5E7EB;
+  border: 2px solid #000;
+  overflow: hidden;
+  margin-bottom: 0.375rem;
+}
+
+.book-progress-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.book-progress-text {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #000;
+}
+
+/* Book Footer */
+.book-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  font-size: 1.2rem;
+  border-top: 2px solid #000;
+}
+
+.book-footer-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #000;
+}
+
+.book-footer-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Loading State */
+.books-loading {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #000;
+  text-align: center;
+  padding: 2rem;
+  background: #fff;
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0px 0px #000;
+}
+
+/* Tooltip */
+.heatmap-tooltip {
+  position: fixed;
+  background: #000;
+  color: #fff;
+  padding: 6px 10px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.heatmap-tooltip.visible {
+  opacity: 1;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .books-page {
+    padding: 1rem;
+  }
+
+  .books-header {
+    padding: 1.25rem;
+    box-shadow: 6px 6px 0px 0px #000;
+  }
+
+  .books-title {
+    font-size: 1.75rem;
+  }
+
+  .stat-card {
+    padding: 0.75rem;
+    box-shadow: 4px 4px 0px 0px #000;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .heatmap-card {
+    padding: 1rem;
+    box-shadow: 6px 6px 0px 0px #000;
+  }
+
+  .heatmap-stat {
+    box-shadow: 3px 3px 0px 0px #000;
+  }
+
+  .book-cover-container {
+    width: 80px;
+    height: 120px;
+  }
+
+  .book-card {
+    padding: 1rem;
+  }
+}

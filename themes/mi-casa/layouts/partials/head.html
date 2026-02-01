@@ -4,12 +4,16 @@
 
 <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:300,400,400i|Nunito:300,300i" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css" type="text/css" media="all" />
-{{ if and .IsPage (ne .File.BaseFileName "desk") }}
+{{ if and .IsPage (ne .File.BaseFileName "desk") (ne .Type "books") }}
 <link rel="stylesheet" href="/posts/custom.css" type="text/css" media="all">
 {{end}}
 
 {{ if eq .RelPermalink "/about/" }}
 <link rel="stylesheet" href="/css/about.css" type="text/css" media="all">
+{{ end }}
+
+{{ if eq .RelPermalink "/books/" }}
+<link rel="stylesheet" href="/css/books.css" type="text/css" media="all">
 {{ end }}
 
 <link rel="shortcut icon" type="image/jpeg" href="/pictures/favicon.webp">

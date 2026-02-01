@@ -17,6 +17,12 @@ enableEmoji = true
   url = "/resume.pdf"
   weight = 2
   target = "raghav-resume"
+[[menu.main]]
+  identifier = "books"
+  name = "Books"
+  title = "Books"
+  url = "/books/"
+  weight = 3
 [params]
     email = 'raghavsharma@outlook.in'
     style = 'auto'

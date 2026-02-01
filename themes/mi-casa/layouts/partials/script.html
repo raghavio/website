@@ -23,12 +23,12 @@
         ctx.fill();
     }
 
-    window.onresize = function () {
+    window.addEventListener('resize', function() {
         canvas.width = deskImage.clientWidth;
         canvas.height = deskImage.clientHeight;
-    }
+    });
 
-    window.onload = function () {
+    window.addEventListener('load', function() {
         imageMapResize();
         // Attach hover events to <area> elements
         const areas = document.querySelectorAll('area');
@@ -42,16 +42,17 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             });
         });
-    }
+    });
 </script>
 {{end}}
 {{end}}
 
-{{if .IsHome}}
 <script>
 function timeAgo(timestamp) {
+    if (!timestamp) return '';
     const now = new Date();
     const past = new Date(timestamp);
+    if (isNaN(past.getTime())) return '';
     const seconds = Math.floor((now - past) / 1000);
 
     const intervals = [
@@ -71,32 +72,352 @@ function timeAgo(timestamp) {
     }
     return 'just now';
 }
+</script>
 
+{{ if eq .RelPermalink "/books/" }}
+<script>
+(function() {
+    const API_BASE = 'https://koreader.raghavsharma.workers.dev';
+    const PROGRESS_COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+    const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    function formatDuration(seconds) {
+        if (seconds < 60) return `${seconds}s`;
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+        if (seconds < 86400) {
+            const hours = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+        }
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+    }
+
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    function getOrdinalSuffix(day) {
+        if (day === 1 || day === 21 || day === 31) return 'st';
+        if (day === 2 || day === 22) return 'nd';
+        if (day === 3 || day === 23) return 'rd';
+        return 'th';
+    }
+
+    function getHeatmapLevel(pages) {
+        if (pages === 0) return 0;
+        if (pages < 10) return 1;
+        if (pages < 20) return 2;
+        if (pages < 35) return 3;
+        if (pages < 50) return 4;
+        return 5;
+    }
+
+    function positionTooltip(tooltip, clientX, clientY) {
+        const tooltipWidth = tooltip.offsetWidth || 150;
+        const tooltipHeight = tooltip.offsetHeight || 30;
+        const padding = 15;
+
+        // Flip horizontally if not enough space on the left
+        const leftPos = clientX - tooltipWidth - padding;
+        const rightPos = clientX + padding;
+        const x = leftPos < 0 ? rightPos : leftPos;
+
+        // Flip vertically if not enough space below
+        const bottomPos = clientY + padding;
+        const topPos = clientY - tooltipHeight - padding;
+        const y = bottomPos + tooltipHeight > window.innerHeight ? topPos : bottomPos;
+
+        tooltip.style.left = `${x}px`;
+        tooltip.style.top = `${y}px`;
+    }
+
+    // Generate heatmap (GitHub-style week-based)
+    function generateHeatmap(heatmapData) {
+        const WEEKS_TO_SHOW = 53;
+
+        // Calculate the start date (go back ~1 year, align to Sunday)
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - startDate.getDay()); // Go to Sunday of current week
+        startDate.setDate(startDate.getDate() - (WEEKS_TO_SHOW - 1) * 7); // Go back 52 weeks
+
+        // Generate week data and track month boundaries
+        const weeks = [];
+        const monthPositions = [];
+
+        for (let week = 0; week < WEEKS_TO_SHOW; week++) {
+            const weekData = [];
+            for (let day = 0; day < 7; day++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + week * 7 + day);
+
+                // Track month boundaries - check if the 1st of any month falls on this day
+                if (date.getDate() === 1) {
+                    monthPositions.push({ month: date.getMonth(), week: week });
+                }
+
+                const dateStr = formatDate(date);
+                const isInFuture = date > today;
+                const dayData = heatmapData[dateStr];
+                const pages = !isInFuture ? (dayData ? dayData.pages : 0) : 0;
+
+                weekData.push({
+                    date: dateStr,
+                    pages: pages,
+                    isInFuture: isInFuture
+                });
+            }
+            weeks.push(weekData);
+        }
+
+        // Generate month labels (positioned by positionMonthLabels after render)
+        const monthsContainer = document.getElementById('heatmap-months');
+        monthsContainer.innerHTML = '';
+
+        monthPositions.forEach(pos => {
+            const monthDiv = document.createElement('div');
+            monthDiv.className = 'heatmap-month';
+            monthDiv.textContent = MONTHS_SHORT[pos.month];
+            monthDiv.style.position = 'absolute';
+            monthDiv.setAttribute('data-week', pos.week);
+            monthsContainer.appendChild(monthDiv);
+        });
+
+        // Generate rows (one per day of week)
+        const rowsContainer = document.getElementById('heatmap-rows');
+        rowsContainer.innerHTML = '';
+
+        DAYS.forEach((day, dayIdx) => {
+            const row = document.createElement('div');
+            row.className = 'heatmap-row';
+
+            const label = document.createElement('div');
+            label.className = 'heatmap-day-label';
+            label.textContent = day;
+            row.appendChild(label);
+
+            const cells = document.createElement('div');
+            cells.className = 'heatmap-cells';
+
+            weeks.forEach((weekData) => {
+                const dayData = weekData[dayIdx];
+                const pages = dayData.pages;
+                const level = getHeatmapLevel(pages);
+
+                const cell = document.createElement('div');
+                cell.className = 'heatmap-cell';
+                cell.setAttribute('data-level', dayData.isInFuture ? 0 : level);
+                cell.setAttribute('data-date', dayData.date);
+                cell.setAttribute('data-pages', pages);
+                if (dayData.isInFuture) {
+                    cell.style.visibility = 'hidden';
+                }
+
+                cells.appendChild(cell);
+            });
+
+            row.appendChild(cells);
+            rowsContainer.appendChild(row);
+        });
+
+        // Add tooltip
+        addHeatmapTooltip();
+
+        // Position month labels after DOM renders
+        requestAnimationFrame(() => positionMonthLabels());
+    }
+
+    function positionMonthLabels() {
+        const monthsContainer = document.getElementById('heatmap-months');
+        const monthLabels = monthsContainer.querySelectorAll('.heatmap-month');
+        const firstRow = document.querySelector('.heatmap-cells');
+
+        if (!firstRow) return;
+
+        const containerRect = monthsContainer.getBoundingClientRect();
+        const cells = firstRow.querySelectorAll('.heatmap-cell');
+
+        monthLabels.forEach(label => {
+            const weekIndex = parseInt(label.getAttribute('data-week'));
+            const cell = cells[weekIndex];
+
+            if (cell) {
+                const cellRect = cell.getBoundingClientRect();
+                const leftPos = cellRect.left - containerRect.left;
+                label.style.left = `${leftPos}px`;
+            }
+        });
+    }
+
+    function addHeatmapTooltip() {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'heatmap-tooltip';
+        document.body.appendChild(tooltip);
+
+        document.querySelectorAll('.heatmap-cell').forEach(cell => {
+            cell.addEventListener('mouseenter', (e) => {
+                if (cell.style.visibility === 'hidden') return;
+                const pages = cell.getAttribute('data-pages');
+                const dateStr = cell.getAttribute('data-date');
+                const date = new Date(dateStr + 'T00:00:00');
+                const day = date.getDate();
+                const formattedDate = `${MONTHS_FULL[date.getMonth()]} ${day}${getOrdinalSuffix(day)}`;
+                tooltip.textContent = `${pages} pages read on ${formattedDate}`;
+                tooltip.classList.add('visible');
+                const rect = cell.getBoundingClientRect();
+                positionTooltip(tooltip, rect.left - 10, rect.top + rect.height - 10);
+            });
+
+            cell.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+            });
+        });
+    }
+
+    // Render books
+    function renderBooks(books) {
+        const grid = document.getElementById('books-grid');
+        grid.innerHTML = '';
+
+        books.forEach((book, index) => {
+            const author = book.authors ? book.authors.split('\n')[0] : '';
+
+            // Status
+            let statusClass, statusText;
+            if (book.progress_percent === 0) {
+                statusClass = 'queued';
+                statusText = '📚 QUEUED';
+            } else if (book.progress_percent >= 100) {
+                statusClass = 'finished';
+                statusText = '✓ FINISHED';
+            } else {
+                statusClass = 'reading';
+                statusText = '📖 READING';
+            }
+
+            const coverHtml = book.cover_url
+                ? `<img class="book-cover" src="${book.cover_url}" alt="${book.title}" loading="lazy">`
+                : `<div class="book-cover-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div>`;
+
+            const card = document.createElement('div');
+            card.className = 'book-card';
+            card.innerHTML = `
+                <div class="book-card-top">
+                    <div class="book-cover-container">${coverHtml}</div>
+                    <div class="book-info">
+                        <h3 class="book-title">${book.title}</h3>
+                        <p class="book-author">${author}</p>
+                        <div class="book-status ${statusClass}">${statusText}</div>
+                        <div class="book-progress-bar">
+                            <div class="book-progress-fill" style="width: ${book.progress_percent}%; background-color: ${PROGRESS_COLORS[index % PROGRESS_COLORS.length]};"></div>
+                        </div>
+                        <div class="book-progress-text">${book.progress_percent}% · ${(book.current_page || 0).toLocaleString()} / ${book.total_pages ? book.total_pages.toLocaleString() : '?'}</div>
+                    </div>
+                </div>
+                <div class="book-footer">
+                    <span>Read ${timeAgo(book.last_read_at)}</span>
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+    }
+
+    // Update UI stats
+    function updateStats(stats) {
+        document.getElementById('stat-total-pages').textContent = stats.total_pages_read.toLocaleString();
+        document.getElementById('stat-total-time').textContent = formatDuration(stats.total_time_seconds);
+        document.getElementById('stat-avg-pages').textContent = stats.avg_pages_per_day;
+        document.getElementById('stat-avg-time').textContent = formatDuration(stats.avg_time_per_day_seconds);
+    }
+
+    // Calculate streak from heatmap data (object keyed by date)
+    function calculateStreak(heatmapData) {
+        let streak = 0;
+        const checkDate = new Date();
+
+        // Allow for today not having activity yet
+        if (!heatmapData[formatDate(checkDate)]) {
+            checkDate.setDate(checkDate.getDate() - 1);
+        }
+
+        while (true) {
+            const dateStr = formatDate(checkDate);
+            if (heatmapData[dateStr] && heatmapData[dateStr].pages > 0) {
+                streak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+        return streak;
+    }
+
+    // Initialize
+    async function init() {
+        try {
+            // Fetch books and activity in parallel
+            const [booksRes, activityRes] = await Promise.all([
+                fetch(API_BASE + '/books'),
+                fetch(API_BASE + '/activity')
+            ]);
+
+            const booksData = await booksRes.json();
+            const books = booksData.books || [];
+            renderBooks(books);
+
+            const activityData = await activityRes.json();
+            updateStats(activityData.stats);
+
+            const heatmapData = activityData.heatmap || {};
+            const streak = calculateStreak(heatmapData);
+            document.getElementById('heatmap-streak').textContent = streak;
+
+            generateHeatmap(heatmapData);
+
+            // Reposition month labels on window resize
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(positionMonthLabels, 150);
+            });
+
+        } catch (err) {
+            console.error('Error loading books:', err);
+            document.getElementById('books-grid').innerHTML = '<div class="books-loading">Failed to load books. Please try again later.</div>';
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+{{ end }}
+
+{{if .IsHome}}
+<script>
 fetch('https://koreader.raghavsharma.workers.dev/books/current')
     .then(res => res.json())
     .then(data => {
-        const cover = document.getElementById('book-cover');
-        const title = document.getElementById('book-title');
-        const author = document.getElementById('book-author');
-        const progressFill = document.getElementById('book-progress-fill');
-        const lastRead = document.getElementById('book-last-read');
-        const percent = document.getElementById('book-percent');
-        const bookInfo = document.querySelector('.book-info');
-        const bookFooter = document.querySelector('.book-footer');
-        const progressBar = document.querySelector('.book-progress-bar');
+        const $ = id => document.getElementById(id);
+        $('book-cover').src = data.cover_url;
+        $('book-cover').alt = data.title;
+        $('book-title').textContent = data.title;
+        $('book-author').textContent = data.author;
+        $('book-progress-fill').style.width = `${data.progress_percent}%`;
+        $('book-last-read').textContent = `Read ${timeAgo(data.last_read_at)}`;
+        $('book-percent').textContent = `${data.progress_percent}%`;
 
-        cover.src = data.cover_url;
-        cover.alt = data.title;
-        title.textContent = data.title;
-        author.textContent = data.author;
-        progressFill.style.width = data.progress_percent + '%';
-        lastRead.textContent = 'Read ' + timeAgo(data.last_read_at);
-        percent.textContent = data.progress_percent + '%';
-
-        // Show the overlay elements
-        bookInfo.style.display = 'block';
-        bookFooter.style.display = 'flex';
-        progressBar.style.display = 'block';
+        document.querySelector('.book-info').style.display = 'block';
+        document.querySelector('.book-footer').style.display = 'flex';
+        document.querySelector('.book-progress-bar').style.display = 'block';
     })
     .catch(err => {
         // Fallback to ceramic cup image

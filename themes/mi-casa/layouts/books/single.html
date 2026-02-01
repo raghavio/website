@@ -1,0 +1,96 @@
+{{ define "main" }}
+<section class="books-page">
+  <div class="books-container">
+    <!-- Header -->
+    <div class="books-header">
+      <h1 class="books-title">Reading Dashboard</h1>
+      <p class="books-subtitle">📚 Tracking my literary journey • Synced in real-time from my Kindle</p>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          <span class="stat-label">Total Pages</span>
+        </div>
+        <div class="stat-value" id="stat-total-pages">--</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="stat-label">Total Time</span>
+        </div>
+        <div class="stat-value" id="stat-total-time">--</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span class="stat-label">Avg Pages/Day</span>
+        </div>
+        <div class="stat-value" id="stat-avg-pages">--</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="stat-label">Avg Time/Day</span>
+        </div>
+        <div class="stat-value" id="stat-avg-time">--</div>
+      </div>
+    </div>
+
+    <!-- Reading Activity Heatmap -->
+    <div class="heatmap-card">
+      <div class="heatmap-header">
+        <div>
+          <h2 class="heatmap-title">Reading Activity</h2>
+        </div>
+        <div class="heatmap-stat">
+          <span class="heatmap-stat-value" id="heatmap-streak">0</span>
+          <span class="heatmap-stat-label">day streak</span>
+        </div>
+      </div>
+
+      <div class="heatmap-wrapper">
+        <div class="heatmap-grid">
+          <div class="heatmap-months" id="heatmap-months"></div>
+          <div id="heatmap-rows"></div>
+        </div>
+
+        <div class="heatmap-legend">
+          <span class="heatmap-legend-label">Less</span>
+          <div class="heatmap-legend-cell" style="background-color: #f5f8f5;"></div>
+          <div class="heatmap-legend-cell" style="background-color: #A5D6A7;"></div>
+          <div class="heatmap-legend-cell" style="background-color: #66BB6A;"></div>
+          <div class="heatmap-legend-cell" style="background-color: #43A047;"></div>
+          <div class="heatmap-legend-cell" style="background-color: #2E7D32;"></div>
+          <div class="heatmap-legend-cell" style="background-color: #1B5E20;"></div>
+          <span class="heatmap-legend-label">More</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Books Section -->
+    <div class="books-section-header">
+      <h2 class="books-section-title">My Books</h2>
+    </div>
+    <div class="books-grid" id="books-grid">
+      <div class="books-loading">Loading books...</div>
+    </div>
+  </div>
+</section>
+{{ end }}
