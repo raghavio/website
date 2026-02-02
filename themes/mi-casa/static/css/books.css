@@ -1,8 +1,8 @@
 /* Books Page - Neobrutalist Design */
 
 .books-page {
-  min-height: 100vh;
   --background-color: #06FFA5;
+  margin-right: 12px;
 }
 
 .books-container {
@@ -114,19 +114,13 @@
 
 .heatmap-header {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 4px solid #000;
-}
-
-@media (min-width: 768px) {
-  .heatmap-header {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
 }
 
 .heatmap-title {
@@ -535,8 +529,8 @@
   opacity: 1;
 }
 
-/* Mobile adjustments */
-@media (max-width: 640px) {
+/* Mobile & Tablet adjustments */
+@media (max-width: 768px) {
   .books-page {
     padding: 1rem;
   }
