@@ -33,6 +33,9 @@ enableEmoji = true
         id = 'twitter'
         name = 'raghavio'        
     [[params.social]]
+        id = 'linkedin'
+        name = 'raghav-sharma-64b0a8442'
+    [[params.social]]
         id = 'email'
         name = 'raghavsharma@outlook.in'    
 [markup.goldmark.renderer]
