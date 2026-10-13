@@ -181,7 +181,7 @@ section {
   grid-template-columns: repeat(8, 1fr);
   grid-auto-rows: 5vw;
   grid-gap: 8px;
-  filter: brightness(55%);
+  filter: brightness(75%);
   margin-bottom: 8px;
 }
 
