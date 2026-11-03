@@ -1,5 +1,17 @@
 # Website
 
+Use Hugo **0.169.0** (standard or extended). The version is pinned in
+`mise.toml` and `.hugo-version`. With [mise](https://mise.jdx.dev/) installed:
+
+```sh
+mise install
+mise exec -- hugo server
+mise exec -- hugo
+```
+
+Alternatively install that Hugo release and run `hugo` directly. Check
+`hugo version`: a version file alone does not upgrade a system installation.
+
 ## Per-post appearance
 
 Keep the shared `mi-casa` templates. Existing posts retain their appearance;
@@ -73,3 +85,28 @@ to a bundle is optional. Bundle resources take priority over shared assets.
 Styles are fingerprinted for cache invalidation. Unknown themes or missing
 stylesheets fail the build. The options apply only to individual posts, never
 the homepage, post listing, books, or about pages.
+
+## Hugo upgrade and deployment
+
+The upgrade from 0.129.0 to 0.169.0 includes the current layout directory names
+(`_partials`, top-level base/single/list templates, `home.html`, and `_markup`)
+and replaces deprecated `languageCode` with `locale`.
+
+Local comparisons against 0.129.0 preserved all 66 output paths, body text and
+link/image/anchor targets across all 28 HTML files, static files, and RSS/sitemap
+URLs. Hugo's newer automatic summary generation changes some social metadata
+and RSS descriptions. Updated syntax highlighting also changes some spans and
+adds a WebKit text-sizing declaration. These are not byte-identical builds.
+Browser spot checks covered the main pages and default/custom post styles at
+desktop and mobile widths. All 19 sitemap pages and 29 referenced local assets
+returned HTTP 200. Live deployment verification has not been performed.
+
+For Cloudflare Pages, set **HUGO_VERSION=0.169.0** in both production and preview
+build environments, keep the existing `hugo` build command and output
+directory `public`. These dashboard settings are separate from this repository;
+the version files do not configure Cloudflare automatically. Review a preview
+deployment before promoting it. Keep the previous deployment for rollback.
+
+One-time checks using temporary posts verified default styling, named themes,
+overrides, isolation, and missing-file failures. No additional CI workflow or
+test step is required.

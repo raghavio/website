@@ -1,5 +1,5 @@
 baseURL = 'https://raghavio.com/'
-languageCode = 'en-in'
+locale = 'en-IN'
 title = 'Raghav Sharma'
 theme = 'mi-casa'
 enableEmoji = true
