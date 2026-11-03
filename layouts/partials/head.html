@@ -33,3 +33,5 @@
 <meta name="twitter:title" content="{{ .Params.twitter_title | default .Params.og_title | default .Title }}">
 <meta name="twitter:description" content="{{ .Params.twitter_description | default .Params.og_description | default .Description | default .Summary }}">
 <meta name="twitter:image" content="{{ .Params.twitter_image | default .Params.og_image | default .Params.featured_image | default .Site.Params.default_twitter_image }}">
+
+{{- partial "post-theme.html" . -}}

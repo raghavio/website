@@ -1,0 +1,34 @@
+{{- /* Styles are opt-in and apply only to individual blog posts. */ -}}
+{{- if and .IsPage (eq .Section "posts") -}}
+  {{- $theme := .Params.post_theme | default "default" -}}
+  {{- $custom := .Params.post_css -}}
+  {{- if or (ne $theme "default") $custom -}}
+    {{- $styles := slice (resources.Get "css/post-theme.css") -}}
+    {{- if ne $theme "default" -}}
+      {{- if not (findRE `^[a-z0-9][a-z0-9-]*$` $theme) -}}
+        {{- errorf "Invalid post_theme %q on %s" $theme .RelPermalink -}}
+      {{- else -}}
+        {{- $path := printf "css/post-themes/%s.css" $theme -}}
+        {{- with resources.Get $path -}}
+          {{- $styles = $styles | append . -}}
+        {{- else -}}
+          {{- errorf "Missing theme asset %s for %s" $path .RelPermalink -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- with $custom -}}
+      {{- /* Bundle-local CSS takes priority over a shared file in assets/. */ -}}
+      {{- $css := $.Resources.GetMatch . -}}
+      {{- if not $css }}{{ $css = resources.Get . }}{{ end -}}
+      {{- if and $css (eq (path.Ext .) ".css") -}}
+        {{- $styles = $styles | append $css -}}
+      {{- else -}}
+        {{- errorf "Missing CSS resource %q for %s (use a page bundle or assets/)" . $.RelPermalink -}}
+      {{- end -}}
+    {{- end -}}
+    {{- range $styles -}}
+      {{- $css := . | fingerprint -}}
+      <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" crossorigin="anonymous">
+    {{- end -}}
+  {{- end -}}
+{{- end -}}

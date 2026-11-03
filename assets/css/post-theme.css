@@ -1,0 +1,33 @@
+/* Loaded only on posts that opt into a theme or a custom stylesheet.
+   Fallbacks match the existing site. !important overrides legacy custom.css. */
+body {
+  background-color: var(--post-page-background, white);
+}
+.container > section {
+  background: var(--post-background, #68bb9885) !important;
+}
+aside {
+  background-image: var(--post-sidebar-image, url("/pictures/burlap-bag.jpg")) !important;
+  background-color: var(--post-sidebar-background, transparent);
+  background-size: var(--post-sidebar-size, 100% auto);
+  background-repeat: var(--post-sidebar-repeat, repeat);
+  background-position: var(--post-sidebar-position, top left);
+}
+nav { color: var(--post-sidebar-color, white); }
+.highlight-container::before {
+  background: var(--post-nav-highlight, #4f582b);
+}
+.section article {
+  color: var(--post-color, black);
+  font-family: var(--post-font, "JetBrains Mono", monospace);
+  max-width: var(--post-max-width, 52em);
+  margin-left: var(--post-margin-left, auto);
+  margin-right: var(--post-margin-right, auto);
+  text-align: var(--post-text-align, start);
+}
+.section article :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--post-heading-font, "Space Grotesk", sans-serif);
+}
+.section article a {
+  --link-color: var(--post-link-color, #229215);
+}

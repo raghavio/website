@@ -1,0 +1,15 @@
+/* A reusable example. No post uses this unless its front matter selects it. */
+:root {
+  --post-page-background: #f7f0e3;
+  --post-background: #f7f0e3;
+  --post-color: #302b24;
+  --post-font: Georgia, "Times New Roman", serif;
+  --post-heading-font: Georgia, "Times New Roman", serif;
+  --post-link-color: #805522;
+  --post-sidebar-image: none;
+  --post-sidebar-background: #40382e;
+  --post-nav-highlight: #69553b;
+  --post-margin-left: 0;
+  --post-margin-right: auto;
+  --post-max-width: 44em;
+}
